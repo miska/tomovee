@@ -17,7 +17,8 @@ void find(const char* path,
 
    // Open directory
    DIR * dir = opendir(path);
-   char buff[PATH_MAX];
+   string l_path(path);
+   static char buff[PATH_MAX];
    dirent* entry = NULL;
    if(dir == NULL)
       return;
@@ -27,7 +28,7 @@ void find(const char* path,
       if(((entry->d_type == DT_DIR) && (
           (strcmp(entry->d_name,".") != 0) && (strcmp(entry->d_name,"..") != 0)
          )) || (entry->d_type == DT_REG)) {
-         snprintf(buff,PATH_MAX,"%s/%s",path,entry->d_name);
+         snprintf(buff,PATH_MAX,"%s/%s",l_path.c_str(),entry->d_name);
          if(entry->d_type == DT_DIR) {
             find(buff, action, file_test, recurse_test);
          }
