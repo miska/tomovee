@@ -38,6 +38,5 @@ void find(const char* path,
          }
       }
    }
-end:
    closedir(dir);
 }
