@@ -1,6 +1,12 @@
 #include "structures.hpp"
 #include "polarssl/md5.h"
 
+Path& Path::operator=(const Path& other) {
+   storage=other.storage;
+   path=other.path;
+   return *this;
+}
+
 File::File(const char* file, const string& storage) {
    paths.push_back(Path(storage,file));
    update_info(file);
@@ -24,4 +30,13 @@ void File::update_info(const char* file) {
    fseek(fl, 0, SEEK_END);
    size = ftell(fl);
    fclose(fl);
+}
+
+void File::assimilate(File& other) {
+   if(looks_same(other)) {
+      for(auto i : other.paths) {
+         paths.push_back(Path(i));
+      }
+      other.paths.erase(other.paths.begin(), other.paths.end());
+   }
 }

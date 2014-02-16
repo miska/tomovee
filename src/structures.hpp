@@ -23,6 +23,8 @@ public:
    //! Move constructor
    Path(const Path&& other): storage(move(other.storage)),
                              path(move(other.path)) {}
+   //! Assignment operator
+   Path& operator=(const Path& other);
 };
 
 //! Basic class to represent a file
@@ -48,9 +50,15 @@ public:
    //! Where can we find a file
    vector<Path> paths;
    //! Returns files hash
-   const string& get_hash() { return hash; };
+   string get_hash() { return hash; };
    //! Returns files size
    long get_size() { return size; };
+   //! Check whether files look same
+   bool looks_same(const File& other) {
+      return ((hash == other.hash) && (size == other.size));
+   }
+   //! Move all data from other file here
+   void assimilate(File& other);
 };
 
 #endif // STRUCTURES_HPP
