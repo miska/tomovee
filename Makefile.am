@@ -12,11 +12,11 @@ AM_CXXFLAGS  += -I$(top_srcdir)/tests
 noinst_PROGRAMS  = tomovee_tests
 
 tomovee_tests_SOURCES = tests/main.cpp
-tomovee_tests_LDADD = -ltomovee
+tomovee_tests_LDADD = libtomovee.la
 
 
 test: tomovee_tests
-	@cd $(top_srcdir); $(top_builddir)/tomovee_tests
+	@cd $(top_srcdir); $(top_builddir)/tomovee_tests -s
 .PHONY: test
 
 all-local: test
