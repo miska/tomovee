@@ -1,0 +1,2 @@
+#define POLARSSL_MD5_C 1
+#define POLARSSL_FS_IO 1
