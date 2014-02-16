@@ -7,9 +7,10 @@
 
 //! Finds files in directory and executes action on them
 void find(const char* path,
-      function<void(const char*)> action,
-      function<bool(const char*)> file_test,
-      function<bool(const char*)> recurse_test) {
+          function<void(const char*)> action,
+          function<bool(const char*)> file_test,
+          function<bool(const char*)> recurse_test)
+{
 
    // Check we want to be here
    if(!recurse_test(path))
@@ -26,8 +27,8 @@ void find(const char* path,
    // Iterate through directory content
    while((entry = readdir(dir)) != NULL) {
       if(((entry->d_type == DT_DIR) && (
-          (strcmp(entry->d_name,".") != 0) && (strcmp(entry->d_name,"..") != 0)
-         )) || (entry->d_type == DT_REG)) {
+               (strcmp(entry->d_name,".") != 0) && (strcmp(entry->d_name,"..") != 0)
+            )) || (entry->d_type == DT_REG)) {
          snprintf(buff,PATH_MAX,"%s/%s",l_path.c_str(),entry->d_name);
          if(entry->d_type == DT_DIR) {
             find(buff, action, file_test, recurse_test);

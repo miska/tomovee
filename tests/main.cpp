@@ -1,7 +1,8 @@
 #define CATCH_CONFIG_MAIN  // This tells Catch to provide a main() - only do this in one cpp file
 
-#include "catch.hpp"
+#include "catch/catch.hpp"
 #include "helper.hpp"
+#include "structures.hpp"
 #include <string.h>
 
 #define fixtures "tests/fixtures"
@@ -34,3 +35,8 @@ TEST_CASE( "Find works", "[helper/find]" ) {
    REQUIRE(test == string(fixtures "/dirs/inside/inside_file"));
 }
 
+TEST_CASE( "File works", "[structures/file]" ) {
+   File test(fixtures "/dirs/a_first", "test");
+   REQUIRE(test.get_size() == 15);
+   REQUIRE(test.get_hash() == "b078a17c2046ebf0af4fc372df02af41");
+}

@@ -1,11 +1,11 @@
 ACLOCAL_AMFLAGS = -I m4
 
-AM_CXXFLAGS = -I$(top_srcdir)/src
+AM_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/ext
 
 lib_LTLIBRARIES = libtomovee.la
 
 libtomovee_la_LDFLAGS = -version-info 0:1:0
-libtomovee_la_SOURCES = src/helper.cpp
+libtomovee_la_SOURCES = src/helper.cpp src/structures.cpp ext/polarssl/md5.cpp
 
 if TESTS
 AM_CXXFLAGS  += -I$(top_srcdir)/tests
