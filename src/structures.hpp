@@ -32,6 +32,8 @@ class File {
 protected:
    //! File hash
    string hash;
+   //! Is loaded?
+   bool loaded;
    //! File size
    long size;
    //! Update hash and filesize
@@ -41,10 +43,12 @@ public:
    File(const char* file, const string& storage);
    //! Copy constructor
    File(const File& other):  hash(other.hash),
+                             loaded(other.loaded),
                              size(other.size),
                              paths(other.paths) {}
    //! Move constructor
    File(const File&& other): hash(move(other.hash)),
+                             loaded(other.loaded),
                              size(move(other.size)),
                              paths(move(other.paths)) {}
    //! Where can we find a file
@@ -53,6 +57,8 @@ public:
    string get_hash() { return hash; };
    //! Returns files size
    long get_size() { return size; };
+   //! Returns whether data about file are loaded
+   bool is_loaded() { return loaded; };
    //! Check whether files look same
    bool looks_same(const File& other) {
       return ((hash == other.hash) && (size == other.size));

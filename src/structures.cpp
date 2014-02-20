@@ -18,6 +18,11 @@ void File::update_info(const char* file) {
    char* buff_ptr = buff;
    FILE* fl;
 
+   loaded = false;
+   if((fl = fopen(file,"r")) == NULL) return;
+   fseek(fl, 0, SEEK_END);
+   size = ftell(fl);
+   fclose(fl);
    if(md5_file(file, sum)==0) {
       for(int i=0; i<16; i++) {
          snprintf(buff_ptr, 3, "%02x", sum[i]);
@@ -26,10 +31,7 @@ void File::update_info(const char* file) {
       buff[32] = 0;
       hash = buff;
    }
-   fl = fopen(file,"r");
-   fseek(fl, 0, SEEK_END);
-   size = ftell(fl);
-   fclose(fl);
+   loaded = true;
 }
 
 void File::assimilate(File& other) {
