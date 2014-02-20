@@ -1,4 +1,5 @@
 #include <sys/types.h>
+#include <sys/stat.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <string.h>
@@ -18,22 +19,22 @@ void find(const char* path,
 
    // Open directory
    DIR * dir = opendir(path);
+
+   if(dir == NULL) return;
+
+   struct stat st;
    string l_path(path);
    static char buff[PATH_MAX];
    dirent* entry = NULL;
-   if(dir == NULL)
-      return;
 
    // Iterate through directory content
    while((entry = readdir(dir)) != NULL) {
-      if(((entry->d_type == DT_DIR) && (
-               (strcmp(entry->d_name,".") != 0) && (strcmp(entry->d_name,"..") != 0)
-            )) || (entry->d_type == DT_REG)) {
+      if((strcmp(entry->d_name,".") != 0) && (strcmp(entry->d_name,"..") != 0)) {
          snprintf(buff,PATH_MAX,"%s/%s",l_path.c_str(),entry->d_name);
-         if(entry->d_type == DT_DIR) {
+         stat(buff, &st);
+         if(S_ISDIR(st.st_mode)) {
             find(buff, action, file_test, recurse_test);
-         }
-         if(entry->d_type == DT_REG) {
+         } else if(S_ISREG(st.st_mode)) {
             if(file_test(buff)) {
                action(buff);
             }
