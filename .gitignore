@@ -21,3 +21,5 @@ ltmain.sh
 stamp-h1
 *.o
 tomovee_tests
+Doxyfile
+doxy.warns

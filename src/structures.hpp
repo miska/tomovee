@@ -1,3 +1,7 @@
+/**
+ * \brief Definitions of objects used in the application
+ */
+
 #ifndef STRUCTURES_HPP
 #define STRUCTURE_HPP
 

@@ -1,3 +1,7 @@
+/**
+ * \brief Header for helper functions
+ */
+
 #ifndef HELPER_HPP
 #define HELPER_HPP
 

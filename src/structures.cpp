@@ -1,3 +1,7 @@
+/**
+ * \brief Implementation of objects used in the application
+ */
+
 #include "structures.hpp"
 #include "polarssl/md5.h"
 
