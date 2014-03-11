@@ -12,6 +12,8 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LN_S
 
+PKG_CHECK_MODULES([SQLITE],[sqlite3])
+
 m4_include([m4/ax_cxx_compile_stdcxx_11.m4])
 AX_CXX_COMPILE_STDCXX_11([],[mandatory])
 

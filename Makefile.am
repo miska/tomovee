@@ -1,6 +1,6 @@
 ACLOCAL_AMFLAGS = -I m4
 
-AM_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/ext
+AM_CXXFLAGS = -I$(top_srcdir)/src -I$(top_srcdir)/ext $(SQLITE_CFLAGS)
 
 lib_LTLIBRARIES = libtomovee.la
 
@@ -12,7 +12,7 @@ AM_CXXFLAGS  += -I$(top_srcdir)/tests
 noinst_PROGRAMS  = tomovee_tests
 
 tomovee_tests_SOURCES = tests/main.cpp
-tomovee_tests_LDADD = libtomovee.la
+tomovee_tests_LDADD = libtomovee.la $(SQLITE_LIBS)
 
 
 test: tomovee_tests
