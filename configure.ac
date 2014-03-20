@@ -37,6 +37,16 @@ AC_ARG_ENABLE([debug],
 AS_IF([test x"$enable_debug" != "xno"], [
         CXXFLAGS="$CXXFLAGS -g -O0"
 ])
+AC_ARG_ENABLE([gcov],
+        [AS_HELP_STRING([--enable-gcov],
+            [Enable gcov])],
+        [enable_gcov="$enableval"],
+        [enable_gcov=no]
+)
+AS_IF([test x"$enable_gcov" != "xno"], [
+        CXXFLAGS="$CXXFLAGS -O0 -fprofile-arcs -ftest-coverage"
+        LDFLAGS="$LDFLAGS -lgcov"
+])
 AC_ARG_ENABLE([tests],
         [AS_HELP_STRING([--enable-tests],
             [Compile and run test suite])],
