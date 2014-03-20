@@ -1,0 +1,9 @@
+language: cpp
+compiler:
+  - gcc
+before_install:
+  - sudo pip install cpp-coveralls
+script:
+  - ./autogen.sh && ./configure --enable-gcov --enable-tests && make test
+after_success:
+  - coveralls --exclude ext --exclude tests --exclude src/config.h
