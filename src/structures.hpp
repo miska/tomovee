@@ -3,7 +3,7 @@
  */
 
 #ifndef STRUCTURES_HPP
-#define STRUCTURE_HPP
+#define STRUCTURES_HPP
 
 #include <vector>
 #include <string>
