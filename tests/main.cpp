@@ -35,7 +35,7 @@ TEST_CASE( "Find works", "[helper][find]" ) {
    // Find file with path containing "inside"
    SECTION("Find file with \"inside\" in name.") {
       find(fixtures, [&test](const char* file) { test = string(file); },
-         [](const char* file) -> bool { 
+         [](const char* file) -> bool {
             return strstr(file, "inside") != NULL;
          } );
 
@@ -65,5 +65,23 @@ TEST_CASE( "File works", "[structures][file]" ) {
       CHECK(test_m.paths.size() == 0);
       // One in x
       CHECK(test_x.paths.size() == 1);
+   }
+}
+
+TEST_CASE( "Path works", "[structures][path]" ) {
+   Path as("a", "/s");
+   Path bs("b", "/s");
+   Path at("a", "/t");
+
+   SECTION("Test comparison") {
+      CHECK(!((bs == as) || (as == at) || (bs == at)));
+      CHECK( ((bs != as) && (as != at) && (bs != at)));
+   }
+
+   SECTION("Test assignment") {
+      Path as_copy(as);
+      CHECK((as == as_copy));
+      as_copy = bs;
+      CHECK((bs == as_copy));
    }
 }
