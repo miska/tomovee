@@ -68,6 +68,7 @@ AC_MSG_NOTICE([
 Build configuration:
         werror:          ${enable_werror}
         debug:           ${enable_debug}
+        gcov:            ${enable_gcov}
         tests:           ${enable_tests}
 ==========================================
 ])
