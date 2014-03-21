@@ -11,6 +11,10 @@ Path& Path::operator=(const Path& other) {
    return *this;
 }
 
+bool Path::operator==(const Path& b) {
+   return ((storage == b.storage) && (path == b.path));
+}
+
 File::File(const char* file, const string& storage) {
    paths.push_back(Path(storage,file));
    update_info(file);

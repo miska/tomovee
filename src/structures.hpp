@@ -29,6 +29,10 @@ public:
                              path(move(other.path)) {}
    //! Assignment operator
    Path& operator=(const Path& other);
+   //! Comparison operator
+   bool operator==(const Path& other);
+   //! Comparison operator
+   bool operator!=(const Path& other) { return (!((*this) == other)); }
 };
 
 //! Basic class to represent a file
