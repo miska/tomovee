@@ -22,11 +22,11 @@ TEST_CASE( "File works", "[structures][file]" ) {
       test_a.assimilate(test_m);
       test_a.assimilate(test_x);
       // Two paths in a
-      CHECK(test_a.paths.size() == 2);
+      CHECK(test_a.get_paths().size() == 2);
       // None in m
-      CHECK(test_m.paths.size() == 0);
+      CHECK(test_m.get_paths().size() == 0);
       // One in x
-      CHECK(test_x.paths.size() == 1);
+      CHECK(test_x.get_paths().size() == 1);
    }
 }
 

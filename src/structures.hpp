@@ -30,23 +30,29 @@ public:
    //! Assignment operator
    Path& operator=(const Path& other);
    //! Comparison operator
-   bool operator==(const Path& other);
+   bool operator==(const Path& other) const;
    //! Comparison operator
    bool operator!=(const Path& other) { return (!((*this) == other)); }
 };
 
 //! Basic class to represent a file
 class File {
-protected:
+
    //! File hash
    string hash;
    //! Is loaded?
    bool loaded;
    //! File size
    long size;
+   //! Where can we find a file
+   vector<Path> paths;
+   
    //! Update hash and filesize
    void update_info(const char* file);
 public:
+   
+   File(const string& hash, long size, const vector<Path>& paths);
+   
    //! Constructor from file
    File(const char* file, const string& storage);
    //! Copy constructor
@@ -59,18 +65,18 @@ public:
                              loaded(other.loaded),
                              size(move(other.size)),
                              paths(move(other.paths)) {}
-   //! Where can we find a file
-   vector<Path> paths;
-   //! Returns files hash
-   string get_hash() { return hash; };
-   //! Returns files size
-   long get_size() { return size; };
-   //! Returns whether data about file are loaded
-   bool is_loaded() { return loaded; };
+
+
+   const vector<Path>& get_paths() const { return paths; }
+   const string& get_hash() const { return hash; };
+   long get_size() const { return size; };
+   bool is_loaded() const { return loaded; };
+
    //! Check whether files look same
-   bool looks_same(const File& other) {
+   bool looks_same(const File& other) const {
       return ((hash == other.hash) && (size == other.size));
    }
+
    //! Move all data from other file here
    void assimilate(File& other);
 };
