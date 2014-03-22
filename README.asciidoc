@@ -1,0 +1,7 @@
+Tomovee
+=======
+
+image:https://travis-ci.org/miska/tomovee.svg?branch=master["Build Status", link="https://travis-ci.org/miska/tomovee"]
+image:https://coveralls.io/repos/miska/tomovee/badge.png?branch=master["Coverage Status", link="https://coveralls.io/r/miska/tomovee?branch=master"]
+
+Highly work in progress, no real functions there yet.
