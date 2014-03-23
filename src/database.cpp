@@ -6,10 +6,10 @@
 
 #include <assert.h>
 
-void DB::absorb(const File &target) {
+void Database::absorb(const File &target) {
    assert("Not yet implemented");
 }
 
-vector<File> DB::get_files(int max, const string &filter) {
+vector<File> Database::get_files(int max, const string &filter) {
    assert("Not yet implemented");
 }

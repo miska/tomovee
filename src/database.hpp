@@ -18,13 +18,13 @@
 using namespace std;
 
 //! Database abstraction class
-class DB {
+class Database {
 public:
    //! Singleton access method
-   static DB* get_instance() {
-      static DB* instance = NULL;
+   static Database* get_instance() {
+      static Database* instance = NULL;
       if(instance == NULL)
-         instance = new DB();
+         instance = new Database();
       return instance;
    }
    //! Takes object and saves it into database
@@ -36,5 +36,8 @@ public:
                                   //! Filter definition
                                   const string &filter = "");
 };
+
+//! Macro for easier access
+#define DB Database::get_instance()
 
 #endif // DATABASE_HPP
