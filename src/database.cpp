@@ -2,7 +2,7 @@
  * \brief Implementation of database abstraction
  */
 
-#include <bits/unique_ptr.h>
+#include <memory>
 #include <sqlite3.h>
 
 #include "structures.hpp"
