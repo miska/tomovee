@@ -35,20 +35,20 @@ public:
       create_schema();
    }
    
-   ~SqliteDatabase() override {
+   ~SqliteDatabase() {
       if(dbHandle != 0){
          sqlite3_close(dbHandle);
       }
    }
    
    //! Return all files from DB
-   vector<File> get_files() override;
+   vector<File> get_files();
    
    //! Changes paths of given files.
-   void update_files(const vector<File>& files) override;
+   void update_files(const vector<File>& files);
 
    //! Changes paths of given file.
-   void update_file(const File& file) override;
+   void update_file(const File& file);
 
 private:
    //! Insert file record in DB (without paths)
