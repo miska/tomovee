@@ -8,6 +8,7 @@
 #include "structures.hpp"
 #include "database.hpp"
 
+Database* instance = nullptr;
 
 struct DBFile {
    sqlite3_int64 id;
@@ -30,6 +31,7 @@ public:
          dbHandle = 0; // defensive
          throw "Cannot open database";
       }
+      instance = this;
       create_schema();
    }
    
@@ -42,16 +44,16 @@ public:
    //! Return all files from DB
    vector<File> get_files() override;
    
-   //! Changes paths of given file.
+   //! Changes paths of given files.
    void update_files(const vector<File>& files) override;
+
+   //! Changes paths of given file.
+   void update_file(const File& file) override;
 
 private:
    //! Insert file record in DB (without paths)
    // returns id of the record
    sqlite3_int64 add_file(const File& file);
-   
-   //! Changes paths for given file (file must exist in DB)
-   void update_file(const File& file);
    
    void create_schema();
    
@@ -156,20 +158,25 @@ sqlite3_int64 SqliteDatabase::add_file(const File& file) {
    return id;
 }
 
+
+void SqliteDatabase::update_file(const File& file){
+   DBFile db_file = get_file_by_hash(file.get_hash());
+   if (db_file.was_found()) {
+      // delete old paths
+      remove_paths(db_file.id);
+      // add new paths
+      add_paths(db_file.id, file);
+
+   } else {
+      auto id = add_file(file);
+      add_paths(id, file);
+   }
+}
+
 void SqliteDatabase::update_files(const vector<File>& files){
    
    for(File file : files) {
-      DBFile db_file = get_file_by_hash(file.get_hash());
-      if (db_file.was_found()) {
-         // delete old paths
-         remove_paths(db_file.id);
-         // add new paths
-         add_paths(db_file.id, file);
-
-      } else {
-         auto id = add_file(file);
-         add_paths(id, file);
-      }
+      update_file(file);
    }
 }
 
@@ -191,6 +198,12 @@ vector<File> SqliteDatabase::get_files() {
    rc = sqlite3_finalize(statement);
    
    return result;
+}
+
+Database* Database::get_instance() {
+   if(instance == nullptr)
+      throw "No database open!";
+   return instance;
 }
 
 Database * open_sqlite_db(const string& filename) {

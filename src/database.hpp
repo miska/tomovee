@@ -19,13 +19,22 @@ public:
    virtual vector<File> get_files() = 0;
    
    //! Changes paths of given files.
-   /// if file does not exist it created otherwise only its paths are changed
+   /// if files do not exist they are created otherwise only paths are changed
    virtual void update_files(const vector<File>& files) = 0;
-   
+
+   //! Changes paths of given file.
+   /// if file does not exist it is created otherwise only paths are changed
+   virtual void update_file(const File& file) = 0;
+
+   //! Returns pointer to the last created instance - pseudo singleton
+   static Database* get_instance();
+
    virtual ~Database() {}
 };
 
 //! Factory method that returns sqlite backed implementation of Database
 extern Database * open_sqlite_db(const string& filename);
+
+#define DB (Database::get_instance())
 
 #endif // DATABASE_HPP
