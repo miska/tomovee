@@ -42,9 +42,9 @@ TEST_CASE( "Path works", "[structures][path]" ) {
 
    SECTION("Test assignment") {
       Path as_copy(as);
-      CHECK((as == as_copy));
+      CHECK(as == as_copy);
       as_copy = bs;
-      CHECK((bs == as_copy));
+      CHECK(bs == as_copy);
    }
 }
 
