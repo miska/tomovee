@@ -3,6 +3,7 @@ compiler:
   - gcc
 before_install:
   - sudo pip install cpp-coveralls
+  - sudo apt-get install libsqlite3-dev
 script:
   - ./autogen.sh && ./configure --enable-gcov --enable-tests && make test
 after_success:
