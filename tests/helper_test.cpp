@@ -41,3 +41,14 @@ TEST_CASE( "Find works", "[helper][find]" ) {
    }
 }
 
+// Tests for extension matching
+TEST_CASE( "Extension matching works", "[helper][is_interesting]" ) {
+   SECTION("Find the good ones") {
+      CHECK(is_interesting("test.avi") == true);
+      CHECK(is_interesting("test.MkV") == true);
+   }
+   SECTION("Reject the bad ones") {
+      CHECK(is_interesting("avi.txt") == false);
+      CHECK(is_interesting("MkV.avi.mov.bak") == false);
+   }
+}

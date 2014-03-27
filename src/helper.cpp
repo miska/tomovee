@@ -7,6 +7,8 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <string.h>
+#include <vector>
+#include <string>
 
 #include "helper.hpp"
 
@@ -47,3 +49,24 @@ void find(const char* path,
    }
    closedir(dir);
 }
+
+/*
+ * TODO: Implement properly
+ *       * No fixed list of extensions
+ *       * Aho-Corasic
+ */
+//! Checks whether name contains the right extension
+bool is_interesting(string name) {
+   vector<string> extensions = { ".avi", ".mkv", ".mov", ".mp4" };
+   
+   for(auto ext : extensions) {
+      auto i = name.rbegin();
+      auto j = ext.rbegin();
+      while(i != name.rend() && j != ext.rend() && tolower(*i) == tolower(*j))
+          i++,j++;
+      if(j==ext.rend())
+         return true;
+   }
+   return false;
+}
+

@@ -25,4 +25,7 @@ void find(
                                                           return true;
                                                      });
 
+//! Checks whether name contains the right extension
+bool is_interesting(string name);
+
 #endif // HELPER_HPP
