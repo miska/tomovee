@@ -25,3 +25,6 @@ stamp-h1
 tomovee_tests
 Doxyfile
 doxy.warns
+.dirstamp
+compile
+tomovee_miner
