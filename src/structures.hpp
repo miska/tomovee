@@ -7,6 +7,7 @@
 
 #include <vector>
 #include <string>
+#include <time.h>
 
 using namespace std;
 
@@ -46,6 +47,10 @@ class File {
    long size;
    //! Where can we find a file
    vector<Path> paths;
+   //! When was file added into database
+   time_t added = 0;
+   //! Last time changed
+   time_t checked = 0;
    
    //! Update hash and filesize
    void update_info(const char* file);
@@ -53,21 +58,28 @@ public:
    //! Constructor from file
    File(const char* file, const string& storage);
    //! Constructor from all data - database
-   File(const string& hash, long size, const vector<Path>& paths):
+   File(const string& hash, long size, const vector<Path>& paths,
+        time_t added = 0, time_t checked = 0):
                              hash(hash),
                              loaded(true),
                              size(size),
-                             paths(paths) {}
+                             paths(paths),
+                             added(added),
+                             checked(checked) {}
    //! Copy constructor
    File(const File& other):  hash(other.hash),
                              loaded(other.loaded),
                              size(other.size),
-                             paths(other.paths) {}
+                             paths(other.paths),
+                             added(other.added),
+                             checked(other.checked) {}
    //! Move constructor
    File(const File&& other): hash(move(other.hash)),
                              loaded(other.loaded),
                              size(move(other.size)),
-                             paths(move(other.paths)) {}
+                             paths(move(other.paths)),
+                             added(other.added),
+                             checked(other.checked) {}
 
 
    const vector<Path>& get_paths() const { return paths; }

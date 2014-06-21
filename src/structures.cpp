@@ -31,7 +31,7 @@ void File::update_info(const char* file) {
    fseek(fl, 0, SEEK_END);
    size = ftell(fl);
    fclose(fl);
-   if(md5_file(file, sum)==0) {
+   if(md5_file(file, sum) == 0) {
       for(int i=0; i<16; i++) {
          snprintf(buff_ptr, 3, "%02x", sum[i]);
          buff_ptr+=2;
@@ -39,6 +39,9 @@ void File::update_info(const char* file) {
       buff[32] = 0;
       hash = buff;
    }
+   if(added == 0)
+      added = time(NULL);
+   checked = time(NULL);
    loaded = true;
 }
 
@@ -48,5 +51,7 @@ void File::assimilate(File& other) {
          paths.push_back(Path(i));
       }
       other.paths.erase(other.paths.begin(), other.paths.end());
+      added = min(added, other.added);
+      checked = max(checked, other.checked);
    }
 }
