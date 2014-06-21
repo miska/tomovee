@@ -116,43 +116,40 @@ DBFile SqliteDatabase::get_file_by_hash(const string& hash) {
 }
 
 void SqliteDatabase::add_paths(sqlite3_int64 id, const File& file) {
-   int rc;
    sqlite3_stmt * statement;
    
-   rc = sqlite3_prepare(dbHandle, "INSERT INTO path(storage, path, file_id) VALUES (:storage, :path, :file_id)", -1, &statement, 0);
+   sqlite3_prepare(dbHandle, "INSERT INTO path(storage, path, file_id) VALUES (:storage, :path, :file_id)", -1, &statement, 0);
    for (auto path : file.get_paths()) {
       sqlite3_bind_text(statement, 1, path.storage.c_str(),-1, SQLITE_STATIC);
       sqlite3_bind_text(statement, 2, path.path.c_str(),-1, SQLITE_STATIC);
       sqlite3_bind_int64(statement,  3,  id);
    
-      rc = sqlite3_step(statement);
-      rc = sqlite3_reset(statement);
+      sqlite3_step(statement);
+      sqlite3_reset(statement);
    }
 
-   rc = sqlite3_finalize(statement);
+   sqlite3_finalize(statement);
 }
 
 void SqliteDatabase::remove_paths(sqlite3_int64 id) {
-   int rc;
    sqlite3_stmt * statement;
    
-   rc = sqlite3_prepare(dbHandle, "DELETE FROM path WHERE file_id = :fileid", -1, &statement, 0);
+   sqlite3_prepare(dbHandle, "DELETE FROM path WHERE file_id = :fileid", -1, &statement, 0);
    sqlite3_bind_int64(statement, 1, id);
-   rc = sqlite3_step(statement);
+   sqlite3_step(statement);
    
-   rc = sqlite3_finalize(statement);
+   sqlite3_finalize(statement);
 }
 
 sqlite3_int64 SqliteDatabase::add_file(const File& file) {
    sqlite3_stmt * statement;
-   int rc = 0;
    
-   rc = sqlite3_prepare(dbHandle, "INSERT INTO file(hash, size) VALUES (:hash,:size)", -1, &statement, 0);
+   sqlite3_prepare(dbHandle, "INSERT INTO file(hash, size) VALUES (:hash,:size)", -1, &statement, 0);
    
-   rc = sqlite3_bind_text(statement, 1, file.get_hash().c_str(), -1, SQLITE_STATIC);   
-   rc = sqlite3_bind_int64(statement, 2, file.get_size());
-   rc = sqlite3_step(statement);
-   rc = sqlite3_finalize(statement);
+   sqlite3_bind_text(statement, 1, file.get_hash().c_str(), -1, SQLITE_STATIC);   
+   sqlite3_bind_int64(statement, 2, file.get_size());
+   sqlite3_step(statement);
+   sqlite3_finalize(statement);
 
    sqlite3_int64 id = sqlite3_last_insert_rowid(dbHandle);   
    return id;
@@ -195,7 +192,7 @@ vector<File> SqliteDatabase::get_files() {
       DBFile dbfile = get_file_by_hash(hash);
       result.push_back(*dbfile.file);
    }
-   rc = sqlite3_finalize(statement);
+   sqlite3_finalize(statement);
    
    return result;
 }

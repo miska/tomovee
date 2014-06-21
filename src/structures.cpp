@@ -15,10 +15,6 @@ bool Path::operator==(const Path& b) const {
    return ((storage == b.storage) && (path == b.path));
 }
 
-File::File(const string& hash, long size, const vector<Path>& paths):hash(hash),size(size),loaded(true),paths(paths) {
-   
-}
-
 File::File(const char* file, const string& storage) {
    paths.push_back(Path(storage,file));
    update_info(file);

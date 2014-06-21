@@ -50,11 +50,14 @@ class File {
    //! Update hash and filesize
    void update_info(const char* file);
 public:
-   
-   File(const string& hash, long size, const vector<Path>& paths);
-   
    //! Constructor from file
    File(const char* file, const string& storage);
+   //! Constructor from all data - database
+   File(const string& hash, long size, const vector<Path>& paths):
+                             hash(hash),
+                             loaded(true),
+                             size(size),
+                             paths(paths) {}
    //! Copy constructor
    File(const File& other):  hash(other.hash),
                              loaded(other.loaded),
