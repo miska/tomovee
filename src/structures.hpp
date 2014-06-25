@@ -36,9 +36,11 @@ public:
    bool operator!=(const Path& other) { return (!((*this) == other)); }
 };
 
+// Forward declaration of Databse class which is friend of File
+class SqliteDatabase;
+
 //! Basic class to represent a file
 class File {
-
    //! File hash
    string hash;
    //! Is loaded?
@@ -48,16 +50,16 @@ class File {
    //! Where can we find a file
    vector<Path> paths;
    //! When was file added into database
-   time_t added = 0;
+   time_t added;
    //! Last time changed
-   time_t checked = 0;
-   
+   time_t checked;
+
+protected:
+   friend class SqliteDatabase; 
    //! Update hash and filesize
    void update_info(const char* file);
-public:
-   //! Constructor from file
-   File(const char* file, const string& storage);
-   //! Constructor from all data - database
+
+   //! Constructor used when loading from database
    File(const string& hash, long size, const vector<Path>& paths,
         time_t added = 0, time_t checked = 0):
                              hash(hash),
@@ -66,6 +68,9 @@ public:
                              paths(paths),
                              added(added),
                              checked(checked) {}
+public:
+   //! Constructor from file
+   File(const char* file, const string& storage);
    //! Copy constructor
    File(const File& other):  hash(other.hash),
                              loaded(other.loaded),

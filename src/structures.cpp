@@ -16,6 +16,7 @@ bool Path::operator==(const Path& b) const {
 }
 
 File::File(const char* file, const string& storage) {
+   added = checked = time(NULL);
    paths.push_back(Path(storage,file));
    update_info(file);
 }
