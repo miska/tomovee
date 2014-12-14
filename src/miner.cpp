@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <getopt.h>
 
-#include "database.hpp"
 #include "helper.hpp"
 #include "structures.hpp"
 
@@ -73,12 +72,16 @@ int main(int argc, char **argv) {
    init_db();
 
    printf("Scanning directory '%s' for storage '%s'\n", argv[argc-1], storage.c_str());
-   find(argv[argc-1],
+   if(chdir(argv[argc-1]) != 0) {
+      fprintf(stderr, "Can't chdir into %s!\n", argv[argc-1]);
+      exit(-1);
+   }
+   find(".",
         [&](const char* name) {
-           auto f = File(name, storage);
+           auto f = File(name + 2, storage);
            f.touch();
            if(verbose)
-              printf("File '%s' added into database...\n", name);
+              printf("File '%s' added into database...\n", name + 2);
         },
         [](const char* name) -> bool { return is_interesting(name); },
         verbose?
