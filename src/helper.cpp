@@ -10,7 +10,19 @@
 #include <vector>
 #include <string>
 
+#include <tntdb/connection.h>
+#include <tntdb/connect.h>
+#include <tntdb/row.h>
+
 #include "helper.hpp"
+#include "sql_init.h"
+
+std::string db_url;
+
+void init_db() {
+   tntdb::Connection conn = tntdb::connectCached(db_url);
+   conn.execute(SQL_INIT);
+}
 
 //! Finds files in directory and executes action on them
 void find(const char* path,

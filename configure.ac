@@ -12,8 +12,6 @@ AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LN_S
 
-PKG_CHECK_MODULES([SQLITE],[sqlite3])
-
 m4_include([m4/ax_cxx_compile_stdcxx_11.m4])
 AX_CXX_COMPILE_STDCXX_11([],[mandatory])
 
@@ -58,6 +56,13 @@ AS_IF([test x"$enable_tests" != "xno"], [
 ],[
         AM_CONDITIONAL(TESTS, false)
 ])
+
+AC_LANG_PUSH([C++])
+AC_CHECK_HEADERS([tntdb/connection.h], [],
+                 AC_MSG_ERROR([cannot find required header tntdb/connection.h]))
+AX_CXX_CHECK_LIB(tntdb, tntdb::dropCached(unsigned keep = 0), [],
+                AC_MSG_ERROR([cannot find required tntdb library]))
+AC_LANG_POP([C++])
 
 CXXFLAGS="$CXXFLAGS -Wall -Wextra -pedantic"
 

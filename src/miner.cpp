@@ -69,12 +69,14 @@ int main(int argc, char **argv) {
    if(outdir == NULL)
       outdir = ".";
 
-   open_sqlite_db(string(outdir) + "/." + "tomovee.sqlite");
+   db_url = std::string("sqlite:") + outdir + "/.tomovee.sqlite";
+   init_db();
 
    printf("Scanning directory '%s' for storage '%s'\n", argv[argc-1], storage.c_str());
    find(argv[argc-1],
         [&](const char* name) {
-           DB->update_file(File(name, storage));
+           auto f = File(name, storage);
+           f.touch();
            if(verbose)
               printf("File '%s' added into database...\n", name);
         },

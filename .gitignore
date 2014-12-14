@@ -28,3 +28,4 @@ doxy.warns
 .dirstamp
 compile
 tomovee_miner
+src/sql_init.h

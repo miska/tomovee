@@ -8,6 +8,8 @@
 #include <string>
 #include <functional>
 
+extern std::string db_url;
+
 using namespace std;
 
 //! Finds files in directory and executes action on them
@@ -27,5 +29,7 @@ void find(
 
 //! Checks whether name contains the right extension
 bool is_interesting(string name);
+
+void init_db();
 
 #endif // HELPER_HPP
