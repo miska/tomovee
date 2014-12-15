@@ -15,7 +15,7 @@ class File;
 
 //! Basic class to represent a path
 class Path {
-friend File;
+friend class File;
 private:
    //! ID in the database
    uint64_t db_id;
