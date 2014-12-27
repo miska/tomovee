@@ -52,3 +52,31 @@ TEST_CASE( "Extension matching works", "[helper][is_interesting]" ) {
       CHECK(is_interesting("MkV.avi.mov.bak") == false);
    }
 }
+
+// Test for hash computation
+TEST_CASE( "Hash computation", "[helper][hash]" ) {
+   SECTION("Idempotent") {
+      uint64_t osdb1, osdb2;
+      uint32_t m1, m2;
+      FILE* f = NULL;
+
+      f = fopen("tests/fixtures/dirs/a_first", "r");
+      compute_hash(osdb1, m1, f);
+      compute_hash(osdb2, m2, f);
+      fclose(f);
+      CHECK(osdb1 == osdb2);
+      CHECK(m1    == m2);
+
+      f = fopen("tests/fixtures/dirs/a_first", "r");
+      compute_hash(osdb2, m2, f); 
+      fclose(f);
+      CHECK(osdb1 == osdb2);
+      CHECK(m1    == m2);\
+
+      f = fopen("tests/fixtures/dirs/m_middle", "r");
+      compute_hash(osdb2, m2, f); 
+      fclose(f);
+      CHECK(osdb1 == osdb2);
+      CHECK(m1    == m2);
+   }
+}
