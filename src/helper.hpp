@@ -12,6 +12,9 @@ extern std::string db_url;
 
 using namespace std;
 
+//! Function to compute Open Subtitles DB hash
+void compute_hash(uint64_t& osdb, uint32_t& m, FILE * handle);
+
 //! Finds files in directory and executes action on them
 void find(
       //! Path where to start looking

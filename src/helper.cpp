@@ -19,6 +19,33 @@
 
 std::string db_url;
 
+//! Function to compute Open Subtitles DB hash
+void compute_hash(uint64_t& osdb_hash, uint32_t& m_hash, FILE * handle) {
+        uint64_t fsize;
+
+        fseek(handle, 0, SEEK_END);
+        fsize = ftell(handle);
+        fseek(handle, 0, SEEK_SET);
+
+        osdb_hash = fsize;
+        m_hash = 0;
+
+        for(uint64_t tmp = 0, i = 0;
+            i < 65536/sizeof(tmp) && fread((char*)&tmp, sizeof(tmp), 1, handle);
+            osdb_hash += tmp, i++);
+
+        fseek(handle, (uint64_t)max((uint64_t)0, fsize/2 - 65536), SEEK_SET);
+        for(uint32_t tmp = 0, i = 0;
+            i < 65536/sizeof(tmp) && fread((char*)&tmp, sizeof(tmp), 1, handle);
+            m_hash += tmp, i++);
+
+        fseek(handle, (uint64_t)max((uint64_t)0, fsize - 65536), SEEK_SET);
+
+        for(uint64_t tmp = 0, i = 0;
+            i < 65536/sizeof(tmp) && fread((char*)&tmp, sizeof(tmp), 1, handle);
+            osdb_hash += tmp, i++);
+}
+
 void init_db() {
    tntdb::Connection conn = tntdb::connectCached(db_url);
    conn.execute(SQL_INIT);

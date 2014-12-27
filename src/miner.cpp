@@ -78,8 +78,13 @@ int main(int argc, char **argv) {
    }
    find(".",
         [&](const char* name) {
-           auto f = File(name + 2, storage);
-           f.touch();
+           try {
+              auto f = File::get(name + 2, storage);
+              f.touch();
+           } catch(std::exception &e) {
+              auto f = File(name + 2, storage);
+              f.touch();
+           }
            if(verbose)
               printf("File '%s' added into database...\n", name + 2);
         },

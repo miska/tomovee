@@ -4,7 +4,6 @@
 
 #include "structures.hpp"
 #include "helper.hpp"
-#include "polarssl/md5.h"
 
 #include <tntdb/connection.h>
 #include <tntdb/connect.h>
@@ -24,27 +23,20 @@ void File::save() {
    smt.set("checked", checked).set("id", db_id).execute();
 }
 
-//! Function to compute Open Subtitles DB hash
-uint64_t compute_osbd_hash(FILE * handle) {
-        uint64_t hash, fsize;
+File File::get(const char* file, const string& storage) {
+   tntdb::Connection conn = tntdb::connectCached(db_url);
+   tntdb::Statement smt;
+   tntdb::Row row;
 
-        fseek(handle, 0, SEEK_END);
-        fsize = ftell(handle);
-        fseek(handle, 0, SEEK_SET);
+   // Get data from the database
+   smt = conn.prepareCached("SELECT files.id, added, checked, mhash, osdbhash, size "
+                            "FROM files,paths WHERE paths.file_id = files.id AND "
+                            "path = :path AND storage = :storage LIMIT 1");
+   row = smt.set("path", file).set("storage", storage).selectRow();
 
-        hash = fsize;
-
-        for(uint64_t tmp = 0, i = 0;
-            i < 65536/sizeof(tmp) && fread((char*)&tmp, sizeof(tmp), 1, handle);
-            hash += tmp, i++);
-
-        fseek(handle, (uint64_t)max((uint64_t)0, fsize - 65536), SEEK_SET);
-
-        for(uint64_t tmp = 0, i = 0;
-            i < 65536/sizeof(tmp) && fread((char*)&tmp, sizeof(tmp), 1, handle);
-            hash += tmp, i++);
-        
-        return hash;
+   return File(row.getUnsigned32(0), row.getUnsigned32(3), row.getUnsigned64(4),
+               row.getUnsigned64(5), vector<Path>(), row.getUnsigned32(1),
+               row.getUnsigned32(2));
 }
 
 Path::Path(const string& st, const string& pth, uint64_t parent) {
@@ -90,9 +82,6 @@ File::File(const char* file, const string& storage) {
 }
 
 void File::update_info(const char* file) {
-   unsigned char sum[16];
-   char buff[33];
-   char* buff_ptr = buff;
    FILE* fl;
 
    loaded = false;
@@ -103,19 +92,9 @@ void File::update_info(const char* file) {
    size = ftell(fl);
    fclose(fl);
 
-   // Calculate md5
-   if(md5_file(file, sum) == 0) {
-      for(int i=0; i<16; i++) {
-         snprintf(buff_ptr, 3, "%02x", sum[i]);
-         buff_ptr+=2;
-      }
-      buff[32] = 0;
-      md5hash = buff;
-   }
-
-   // Calculate OSDB hash
+   // Calculate hashes
    if((fl = fopen(file,"r")) == NULL) return;
-   osdbhash = compute_osbd_hash(fl);
+   compute_hash(osdbhash, mhash, fl);
    fclose(fl);
 
    // Set times
@@ -124,24 +103,24 @@ void File::update_info(const char* file) {
 
    // Try whether we already have a file like that
    tntdb::Connection conn = tntdb::connectCached(db_url);
-   tntdb::Row row;
    tntdb::Statement smt;
+   tntdb::Row row;
 
    // Add into database if doesn't exists
-   smt = conn.prepareCached("INSERT INTO files (md5hash, osdbhash, size, "
-                            "added, checked) SELECT :md5, :osdb, "
+   smt = conn.prepareCached("INSERT INTO files (mhash, osdbhash, size, "
+                            "added, checked) SELECT :m, :osdb, "
                             ":size, :added, :checked WHERE 1 NOT IN "
                             "(SELECT 1 FROM  files WHERE "
                             "md5hash = :md5 AND osdbhash = :osdb AND "
                             "size = :size LIMIT 1)");
-   smt.set("md5", md5hash).set("osdb", osdbhash).set("size", size).
+   smt.set("m", mhash).set("osdb", osdbhash).set("size", size).
        set("added", added).set("checked", checked).execute();
 
    // Get ID from the database
    smt = conn.prepareCached("SELECT id, added, checked FROM files WHERE "
-                            "md5hash = :md5 AND osdbhash = :osdb AND "
+                            "mhash = :m AND osdbhash = :osdb AND "
                             "size = :size LIMIT 1");
-   row = smt.set("md5", md5hash).set("osdb", osdbhash).set("size", size).
+   row = smt.set("m", mhash).set("osdb", osdbhash).set("size", size).
          selectRow();
 
    row[0].get(db_id);
