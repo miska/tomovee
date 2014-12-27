@@ -19,23 +19,27 @@ friend class File;
 private:
    //! ID in the database
    uint64_t db_id;
-protected:
-   //! Constructor
-   Path(const string& st, const string& pth, uint64_t parent);
-public:
    //! On which storage is this path
    string storage;
    //! Path relative to the root of the storage
    string path;
+   //! Last time changed
+   time_t checked;
+protected:
+   //! Constructor
+   Path(const string& st, const string& pth, uint64_t parent);
+public:
    //! Copy constructor
    Path(const Path& other):  db_id(other.db_id),
                              storage(other.storage),
-                             path(other.path) {}
+                             path(other.path),
+                             checked(other.checked) {}
 
    //! Move constructor
    Path(const Path&& other): db_id(other.db_id),
                              storage(move(other.storage)),
-                             path(move(other.path)) {}
+                             path(move(other.path)),
+                             checked(other.checked) {}
    //! Assignment operator
    Path& operator=(const Path& other);
    //! Comparison operator
@@ -44,6 +48,8 @@ public:
    bool operator!=(const Path& other) { return (!((*this) == other)); }
    //! Delete path from database
    void remove();
+   //! Update last checked time
+   void touch();
 };
 
 //! Basic class to represent a file
@@ -54,16 +60,12 @@ class File {
    uint32_t mhash;
    //! File Open Subtitles DataBase hash
    uint64_t osdbhash;
-   //! Is loaded?
-   bool loaded;
    //! File size
    uint64_t size;
    //! Where can we find a file
    vector<Path> paths;
    //! When was file added into database
    time_t added;
-   //! Last time changed
-   time_t checked;
 
 protected:
    //! Update hash and filesize
@@ -71,15 +73,13 @@ protected:
 
    //! Constructor used when loading from database
    File(uint32_t id, uint32_t mhash, uint64_t osdbhash, uint64_t size,
-        const vector<Path>& paths, time_t added = 0, time_t checked = 0):
+        const vector<Path>& paths, time_t added = 0):
                              db_id(id),
                              mhash(mhash),
                              osdbhash(osdbhash),
-                             loaded(true),
                              size(size),
                              paths(paths),
-                             added(added),
-                             checked(checked) {}
+                             added(added) {}
 public:
    //! Constructor from file
    File(const char* file, const string& storage);
@@ -87,27 +87,18 @@ public:
    File(const File& other):  db_id(other.db_id),
                              mhash(other.mhash),
                              osdbhash(other.osdbhash),
-                             loaded(other.loaded),
                              size(other.size),
                              paths(other.paths),
-                             added(other.added),
-                             checked(other.checked) {}
+                             added(other.added) {}
    //! Move constructor
    File(const File&& other): db_id(other.db_id),
                              mhash(other.mhash),
                              osdbhash(move(other.osdbhash)),
-                             loaded(other.loaded),
                              size(move(other.size)),
                              paths(move(other.paths)),
-                             added(other.added),
-                             checked(other.checked) {}
+                             added(other.added) {}
 
-   void touch();
-   void save();
    const vector<Path>& get_paths() const { return paths; }
-   uint64_t get_osdb_hash() const { return osdbhash; };
-   long get_size() const { return size; };
-   bool is_loaded() const { return loaded; };
 
    //! Check whether files look same
    bool looks_same(const File& other) const {
@@ -117,12 +108,8 @@ public:
 
    //! Move all data from other file here
    void assimilate(File& other);
-   //! Add new path to the file
-   void add_path(Path& path);
-   //! Remove path from the file
-   void remove_path(Path& path);
+   //! Return hash for Open Subtitle DataBase
    uint64_t get_osdb_hash() { return osdbhash; }
-   static File get(const char* file, const string& storage);
 };
 
 #endif // STRUCTURES_HPP
