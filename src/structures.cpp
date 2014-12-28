@@ -120,3 +120,17 @@ void File::assimilate(File& other) {
       added = min(added, other.added);
    }
 }
+
+void File::cleanup() {
+   tntdb::Connection conn = tntdb::connectCached(db_url);
+   auto smt = conn.prepareCached("DELETE FROM files WHERE id NOT IN "
+                            "(SELECT file_id FROM paths)");
+   smt.execute();
+}
+
+void Path::cleanup(time_t older, std::string storage) {
+   tntdb::Connection conn = tntdb::connectCached(db_url);
+   auto smt = conn.prepareCached("DELETE FROM paths WHERE checked < :ts AND "
+                                                         "storage = :st");
+   smt.set("ts", older).set("st", storage).execute();
+}

@@ -50,6 +50,8 @@ public:
    void remove();
    //! Update last checked time
    void touch();
+   //! Clean all files not checked since
+   static void cleanup(time_t older, std::string storage);
 };
 
 //! Basic class to represent a file
@@ -110,6 +112,8 @@ public:
    void assimilate(File& other);
    //! Return hash for Open Subtitle DataBase
    uint64_t get_osdb_hash() { return osdbhash; }
+   //! Clean files that we do not have in any storage
+   static void cleanup();
 };
 
 #endif // STRUCTURES_HPP

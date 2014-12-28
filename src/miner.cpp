@@ -21,19 +21,22 @@ void print_help(const char* argv_0) {
 int main(int argc, char **argv) {
    static struct option opts[] = {
       {"storage", required_argument, NULL, 's' },
+      {"delete",  no_argument      , NULL, 'd' },
       {"verbose", no_argument      , NULL, 'v' },
       {"help"   , no_argument      , NULL, 'h' },
       { 0       , 0                , 0   ,  0  }
    };
    int c;
    bool verbose = false;
+   bool del = false;
+   time_t del_ts = time(NULL);
    int index;
    const char *outdir = NULL;
    char buff[128];
    string path, storage;
 
    // Parse the options
-   while((c = getopt_long(argc, argv, "hvs:", opts, &index)) != -1) {
+   while((c = getopt_long(argc, argv, "hdvs:", opts, &index)) != -1) {
       switch(c) {
       case 'h':
          print_help(argv[0]);
@@ -43,6 +46,9 @@ int main(int argc, char **argv) {
          break;
       case 'v':
          verbose = true;
+         break;
+      case 'd':
+         del = true;
          break;
       default:
       case '?':
@@ -88,4 +94,8 @@ int main(int argc, char **argv) {
         :
            [](const char*) -> bool { return true; }
        );
+   if(del) {
+      Path::cleanup(del_ts, storage);
+      File::cleanup();
+   }
 }
