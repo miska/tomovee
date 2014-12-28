@@ -7,9 +7,11 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <string.h>
+#include <libgen.h>
 #include <magic.h>
 #include <vector>
 #include <string>
+#include <fstream>
 
 #include <tntdb/connection.h>
 #include <tntdb/connect.h>
@@ -132,3 +134,40 @@ bool is_interesting(string name) {
    return false;
 }
 
+// TODO: optimise
+std::string imdb_from_nfo(const char* cfile) {
+   std::string ret;
+   char *file = strdup(cfile);
+   const char *patt = "://www.imdb.com/title/";
+   size_t patt_len = strlen(patt);
+   char* dir = file;
+
+   while((strcmp(dir = dirname(dir), ".") != 0) && ret.empty()) {
+      find(dir,
+         [&](const char* name) {
+            std::string str;
+            std::ifstream file(name,std::ios::in);
+            if (file) {
+               while (!file.eof()) str.push_back(file.get());
+            }
+            auto f = str.find(patt);
+            if(f != std::string::npos) {
+               for(auto i = f + patt_len; i < str.size() && 
+                                            ( str[i] == 't' || isdigit(str[i]));
+                   ret.push_back(str[i]), i++);
+            }
+         },
+         [](const char *name) -> bool { 
+            int len = strlen(name);
+            return ( (len > 4) &&
+                     (tolower(name[len - 4]) == '.') &&
+                     (tolower(name[len - 3]) == 'n') &&
+                     (tolower(name[len - 2]) == 'f') &&
+                     (tolower(name[len - 1]) == 'o') );
+         },
+         [&](const char *name) -> bool { return strcmp(name, dir) == 0; }
+      );
+   }
+   free(file);
+   return ret;
+}

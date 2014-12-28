@@ -7,6 +7,7 @@
 
 #include <string>
 #include <functional>
+#include <limits.h>
 
 extern std::string db_url;
 
@@ -38,5 +39,7 @@ bool is_video(const char *file);
 
 //! Makes sure database tables are created
 void init_db();
+
+std::string imdb_from_nfo(const char* file);
 
 #endif // HELPER_HPP

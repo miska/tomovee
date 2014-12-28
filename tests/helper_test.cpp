@@ -63,6 +63,16 @@ TEST_CASE( "Video detection works", "[helper][is_video]" ) {
    }
 }
 
+// Tests for video detection
+TEST_CASE( "IMDB link extraction from NFO file", "[helper][imdb_from_nfo]" ) {
+   SECTION("NFO in same directory") {
+      CHECK(imdb_from_nfo(fixtures "/almost_movies/solaris.avi") == "tt0069293");
+   }
+   SECTION("NFO in upper directory") {
+      CHECK(imdb_from_nfo(fixtures "/almost_movies/inside/solaris.avi") == "tt0069293");
+   }
+}
+
 // Test for hash computation
 TEST_CASE( "Hash computation", "[helper][hash]" ) {
    SECTION("Idempotent") {
