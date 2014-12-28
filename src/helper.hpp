@@ -33,6 +33,10 @@ void find(
 //! Checks whether name contains the right extension
 bool is_interesting(string name);
 
+//! Checks whether file contains video
+bool is_video(const char *file);
+
+//! Makes sure database tables are created
 void init_db();
 
 #endif // HELPER_HPP

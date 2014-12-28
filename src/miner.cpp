@@ -88,9 +88,9 @@ int main(int argc, char **argv) {
            if(verbose)
               printf("File '%s' with hash %lx added into database...\n", name + 2, f.get_osdb_hash());
         },
-        [](const char* name) -> bool { return is_interesting(name); },
+        [](const char* name) -> bool { return is_video(name); },
         verbose?
-           [](const char* name) -> bool { printf(" ... %s\n", name); return true; }
+           [](const char* name) -> bool { printf(" ... %s\n", name + 2); return true; }
         :
            [](const char*) -> bool { return true; }
        );

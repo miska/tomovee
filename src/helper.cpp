@@ -7,6 +7,7 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <string.h>
+#include <magic.h>
 #include <vector>
 #include <string>
 
@@ -53,6 +54,24 @@ void compute_hash(uint64_t& osdb_hash, uint32_t& m_hash, FILE * handle) {
 void init_db() {
    tntdb::Connection conn = tntdb::connectCached(db_url);
    conn.execute(SQL_INIT);
+}
+
+bool is_video(const char *file) {
+   const char *magic_full;
+   static bool init = true;
+   static magic_t magic_cookie;
+
+   if(init) {
+      magic_cookie = magic_open(MAGIC_MIME);
+      if(magic_cookie == NULL)
+         throw "Can't open magic library";
+      if(magic_load(magic_cookie, NULL) != 0)
+         throw "Can't open magic file";
+      init = false;
+   }
+
+   magic_full = magic_file(magic_cookie, file);
+   return strncmp("video", magic_full, 5) == 0;
 }
 
 //! Finds files in directory and executes action on them

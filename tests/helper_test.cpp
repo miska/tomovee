@@ -53,6 +53,16 @@ TEST_CASE( "Extension matching works", "[helper][is_interesting]" ) {
    }
 }
 
+// Tests for video detection
+TEST_CASE( "Video detection works", "[helper][is_video]" ) {
+   SECTION("Detect the real one") {
+      CHECK(is_video(fixtures "/movies/breakdance.avi") == true);
+   }
+   SECTION("Not detect the fake one") {
+      CHECK(is_video(fixtures "/almost_movies/ahoj.mkv") == false);
+   }
+}
+
 // Test for hash computation
 TEST_CASE( "Hash computation", "[helper][hash]" ) {
    SECTION("Idempotent") {

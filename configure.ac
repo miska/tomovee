@@ -64,6 +64,11 @@ AX_CXX_CHECK_LIB(tntdb, tntdb::dropCached(unsigned keep = 0), [],
                 AC_MSG_ERROR([cannot find required tntdb library]))
 AC_LANG_POP([C++])
 
+AC_CHECK_HEADERS([magic.h], [],
+                 AC_MSG_ERROR([cannot find required header magic.h]))
+AC_CHECK_LIB(magic, magic_open, [],
+                AC_MSG_ERROR([cannot find required magic library]))
+
 CXXFLAGS="$CXXFLAGS -Wall -Wextra -pedantic"
 
 AC_OUTPUT
