@@ -32,7 +32,7 @@ TEST_CASE( "Find works", "[helper][find]" ) {
 
    // Find file with path containing "inside"
    SECTION("Find file with \"inside\" in name.") {
-      find(fixtures, [&test](const char* file) { test = string(file); },
+      find(fixtures "/dirs", [&test](const char* file) { test = string(file); },
          [](const char* file) -> bool {
             return strstr(file, "inside") != NULL;
          } );
