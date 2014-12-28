@@ -5,14 +5,17 @@
 
 #define fixtures "tests/fixtures"
 
+
 TEST_CASE( "File works", "[structures][file]" ) {
+   db_url = "sqlite:test.sqlite";
+   init_db();
    File test_a(fixtures "/dirs/a_first",  "test");
 
    SECTION("Verify metadata are read correctly") {
       // Size is read right
       CHECK(test_a.get_size() == 15);
       // MD5 is read right
-      CHECK(test_a.get_hash() == "b078a17c2046ebf0af4fc372df02af41");
+      CHECK(test_a.get_osdb_hash() == 0xdeae40ded8d8ca9f);
    }
 
    SECTION("Test assimilation") {
@@ -27,24 +30,6 @@ TEST_CASE( "File works", "[structures][file]" ) {
       CHECK(test_m.get_paths().size() == 0);
       // One in x
       CHECK(test_x.get_paths().size() == 1);
-   }
-}
-
-TEST_CASE( "Path works", "[structures][path]" ) {
-   Path as("a", "/s");
-   Path bs("b", "/s");
-   Path at("a", "/t");
-
-   SECTION("Test comparison") {
-      CHECK(!((bs == as) || (as == at) || (bs == at)));
-      CHECK( ((bs != as) && (as != at) && (bs != at)));
-   }
-
-   SECTION("Test assignment") {
-      Path as_copy(as);
-      CHECK(as == as_copy);
-      as_copy = bs;
-      CHECK(bs == as_copy);
    }
 }
 

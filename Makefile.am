@@ -21,7 +21,7 @@ if TESTS
 AM_CXXFLAGS  += -I$(top_srcdir)/tests
 noinst_PROGRAMS  = tomovee_tests
 
-tomovee_tests_SOURCES = tests/main_test.cpp tests/helper_test.cpp
+tomovee_tests_SOURCES = tests/main_test.cpp tests/helper_test.cpp tests/structures_test.cpp
 tomovee_tests_LDADD = libtomovee.la $(SQLITE_LIBS)
 
 

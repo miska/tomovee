@@ -60,20 +60,20 @@ TEST_CASE( "Hash computation", "[helper][hash]" ) {
       uint32_t m1, m2;
       FILE* f = NULL;
 
-      f = fopen("tests/fixtures/dirs/a_first", "r");
+      f = fopen(fixtures "/dirs/a_first", "r");
       compute_hash(osdb1, m1, f);
       compute_hash(osdb2, m2, f);
       fclose(f);
       CHECK(osdb1 == osdb2);
       CHECK(m1    == m2);
 
-      f = fopen("tests/fixtures/dirs/a_first", "r");
+      f = fopen(fixtures "/dirs/a_first", "r");
       compute_hash(osdb2, m2, f); 
       fclose(f);
       CHECK(osdb1 == osdb2);
       CHECK(m1    == m2);\
 
-      f = fopen("tests/fixtures/dirs/m_middle", "r");
+      f = fopen(fixtures "/dirs/m_middle", "r");
       compute_hash(osdb2, m2, f); 
       fclose(f);
       CHECK(osdb1 == osdb2);

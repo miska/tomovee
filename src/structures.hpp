@@ -112,6 +112,8 @@ public:
    void assimilate(File& other);
    //! Return hash for Open Subtitle DataBase
    uint64_t get_osdb_hash() { return osdbhash; }
+   //! Return size of the file
+   uint64_t get_size() { return size; }
    //! Clean files that we do not have in any storage
    static void cleanup();
 };
