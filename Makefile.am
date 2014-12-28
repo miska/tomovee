@@ -26,7 +26,7 @@ tomovee_tests_LDADD = libtomovee.la $(SQLITE_LIBS)
 
 
 test: tomovee_tests
-	@cd $(top_srcdir); $(top_builddir)/tomovee_tests -s
+	@cd $(top_srcdir); $(abs_top_builddir)/tomovee_tests -s
 .PHONY: test
 
 endif

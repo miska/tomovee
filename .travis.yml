@@ -5,6 +5,6 @@ before_install:
   - sudo pip install cpp-coveralls
   - sudo apt-get install libtntdb-dev tntdb-sqlite2
 script:
-  - ./autogen.sh && ./configure --enable-gcov --enable-tests && make test
+  - ./autogen.sh && ./configure --enable-gcov --enable-tests && make test && make all
 after_success:
-  - coveralls --exclude ext --exclude tests --exclude src/config.h
+  - coveralls --exclude ext --exclude tests --exclude src/config.h --exclude src/\*.hpp -r . -b .
