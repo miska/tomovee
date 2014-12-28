@@ -86,7 +86,7 @@ int main(int argc, char **argv) {
         [&](const char* name) {
            auto f = File(name + 2, storage);
            if(verbose)
-              printf("File '%s' added into database...\n", name + 2);
+              printf("File '%s' with hash %lx added into database...\n", name + 2, f.get_osdb_hash());
         },
         [](const char* name) -> bool { return is_interesting(name); },
         verbose?

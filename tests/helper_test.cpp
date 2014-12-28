@@ -11,7 +11,7 @@ TEST_CASE( "Find works", "[helper][find]" ) {
 
    // Find last file
    SECTION("Find the last file") {
-      find(fixtures, [&test](const char* file) {
+      find(fixtures "/dirs", [&test](const char* file) {
          string tmp = file;
          if(tmp>test)
             test = tmp;
@@ -78,5 +78,15 @@ TEST_CASE( "Hash computation", "[helper][hash]" ) {
       fclose(f);
       CHECK(osdb1 == osdb2);
       CHECK(m1    == m2);
+   }
+   SECTION("Correct") {
+      FILE* f = NULL;
+      uint64_t osdb;
+      uint32_t m;
+      f = fopen(fixtures "/movies/breakdance.avi", "r");
+      compute_hash(osdb, m, f); 
+      fclose(f);
+      CHECK(osdb == 0x8e245d9679d31e12);
+      CHECK(m    == 0xeb55b98d);
    }
 }

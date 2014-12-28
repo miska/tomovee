@@ -32,20 +32,21 @@ void compute_hash(uint64_t& osdb_hash, uint32_t& m_hash, FILE * handle) {
         osdb_hash = fsize;
         m_hash = fsize;
 
-        for(tmp = 0, i = 0;
-            i < (size_t)65536/sizeof(tmp) && fread((char*)&tmp, sizeof(tmp), 1, handle);
+        for(tmp = 0, i = 0; i < 65536/sizeof(tmp) && 
+            fread((char*)&tmp, sizeof(tmp), 1, handle);
             osdb_hash += tmp, i++);
 
         fseek(handle, (uint64_t)(
                         ((fsize/((uint64_t)2)) > (uint64_t)32768)?
-                         (fsize/((uint64_t)2)) : 0), SEEK_SET);
-        for(uint32_t tmp = 0, i = 0;
-            i < (size_t)65536/sizeof(tmp) && fread((char*)&tmp, sizeof(tmp), 1, handle);
+                         (fsize/((uint64_t)2) - 32768) : 0), SEEK_SET);
+        for(uint32_t tmp = 0, i = 0; i < (size_t)65536/sizeof(tmp) &&
+            fread((char*)&tmp, sizeof(tmp), 1, handle);
             m_hash += tmp, i++);
 
-        fseek(handle, (uint64_t)((fsize > (uint64_t)65536) ? fsize : 0), SEEK_SET);
-        for(tmp = 0, i = 0;
-            i < (size_t)65536/sizeof(tmp) && fread((char*)&tmp, sizeof(tmp), 1, handle);
+        fseek(handle, (uint64_t)((fsize > (uint64_t)65536) ?
+                                  fsize - 65536 : 0), SEEK_SET);
+        for(uint64_t tmp = 0, i = 0; i < 65536/sizeof(tmp) &&
+            fread((char*)&tmp, sizeof(tmp), 1, handle);
             osdb_hash += tmp, i++);
 }
 
