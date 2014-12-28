@@ -86,7 +86,13 @@ int main(int argc, char **argv) {
         [&](const char* name) {
            auto f = File(name + 2, storage);
            if(verbose)
-              printf("File '%s' with hash %lx added into database...\n", name + 2, f.get_osdb_hash());
+              printf("File '%s' added into database.\n", name + 2);
+           std::string i = imdb_from_nfo(name);
+           if(verbose && !i.empty()) {
+              printf("Got IMDB ID '%s' from NFO file.\n", i.c_str());
+              auto m = Movie(i);
+              f.set_movie(AUTO_NFO, m.get_id());
+           }
         },
         [](const char* name) -> bool { return is_video(name); },
         verbose?

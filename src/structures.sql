@@ -4,11 +4,10 @@ CREATE TABLE IF NOT EXISTS files  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                                    size BIGINT, 
                                    added TIMESTAMP,
                                    movie_id INTEGER,
+                                   assigned_by TINYINT DEFAULT 0,
                                    FOREIGN KEY(movie_id) REFERENCES movies(id));
 CREATE TABLE IF NOT EXISTS movies (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                                   imdb_id TEXT,
-                                   orig_name TEXT,
-                                   released TEXT);
+                                   imdb_id TEXT UNIQUE);
 CREATE TABLE IF NOT EXISTS paths  (id INTEGER PRIMARY KEY AUTOINCREMENT, 
                                    storage TEXT,
                                    path TEXT NOT NULL,

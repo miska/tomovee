@@ -92,13 +92,13 @@ void File::update_info(const char* file) {
 
    // Add into database if doesn't exists
    smt = conn.prepareCached("INSERT INTO files (mhash, osdbhash, size, "
-                            "added) SELECT :m, :osdb, "
-                            ":size, :added WHERE 1 NOT IN "
+                            "added, movie_id, assigned_by) SELECT :m, :osdb, "
+                            ":size, :added, 0, :ass WHERE 1 NOT IN "
                             "(SELECT 1 FROM  files WHERE "
                             "mhash = :m AND osdbhash = :osdb AND "
                             "size = :size LIMIT 1)");
    smt.set("m", mhash).set("osdb", osdbhash).set("size", size).
-       set("added", added).execute();
+       set("added", added).set("ass", NOT_ASSIGNED).execute();
 
    // Get ID from the database
    smt = conn.prepareCached("SELECT id, added FROM files WHERE "
@@ -128,9 +128,35 @@ void File::cleanup() {
    smt.execute();
 }
 
+void File::set_movie(movie_assigned type, uint64_t movie_id) {
+   tntdb::Connection conn = tntdb::connectCached(db_url);
+   auto smt = conn.prepareCached("UPDATE files SET movie_id = :mov, "
+                                 "assigned_by = :ass WHERE id = :id");
+   smt.set("ass", type).set("mov", movie_id).set("id", db_id).execute();
+}
+
 void Path::cleanup(time_t older, std::string storage) {
    tntdb::Connection conn = tntdb::connectCached(db_url);
    auto smt = conn.prepareCached("DELETE FROM paths WHERE checked < :ts AND "
                                                          "storage = :st");
    smt.set("ts", older).set("st", storage).execute();
+}
+
+Movie::Movie(std::string imdb_id) {
+   // Try whether we already have a movie like that
+   tntdb::Connection conn = tntdb::connectCached(db_url);
+   tntdb::Statement smt;
+   tntdb::Row row;
+
+   // Add into database if doesn't exists
+   smt = conn.prepareCached("INSERT INTO movies (imdb_id) SELECT :imdb "
+                            "WHERE 1 NOT IN (SELECT 1 FROM movies WHERE "
+                            "imdb_id = :imdb LIMIT 1)");
+   smt.set("imdb", imdb_id).execute();
+
+   // Get ID from the database
+   smt = conn.prepareCached("SELECT id FROM movies WHERE imdb_id = :imdb LIMIT 1");
+   row = smt.set("imdb", imdb_id).selectRow();
+
+   row[0].get(db_id);
 }

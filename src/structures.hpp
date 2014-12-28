@@ -11,6 +11,12 @@
 
 using namespace std;
 
+enum movie_assigned {
+   NOT_ASSIGNED = 0,
+   MANUAL,
+   AUTO_NFO,
+};
+
 class File;
 
 //! Basic class to represent a path
@@ -114,8 +120,18 @@ public:
    uint64_t get_osdb_hash() { return osdbhash; }
    //! Return size of the file
    uint64_t get_size() { return size; }
+   //! Set movie this file belongs to
+   void set_movie(movie_assigned type, uint64_t movie_id);
    //! Clean files that we do not have in any storage
    static void cleanup();
+};
+
+class Movie {
+   uint64_t db_id;
+public:
+   std::string imdb_id;
+   Movie(std::string imdb_id);
+   uint64_t get_id() { return db_id; }
 };
 
 #endif // STRUCTURES_HPP
