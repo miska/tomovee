@@ -2,13 +2,17 @@
 #include "helper.hpp"
 #include "structures.hpp"
 #include <string.h>
+#include <stdio.h>
+#include <unistd.h>
 
 #define fixtures "tests/fixtures"
 
 
 TEST_CASE( "File works", "[structures][file]" ) {
-   db_url = "sqlite:test.sqlite";
+   db_url  = "sqlite:";
+   db_url += tmpnam(NULL);
    init_db();
+
    File test_a(fixtures "/dirs/a_first",  "test");
 
    SECTION("Verify metadata are read correctly") {
@@ -31,5 +35,7 @@ TEST_CASE( "File works", "[structures][file]" ) {
       // One in x
       CHECK(test_x.get_paths().size() == 1);
    }
+
+   unlink(db_url.c_str());
 }
 
