@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <string.h>
 #include <libgen.h>
+#include <locale.h>
 #include <magic.h>
 #include <vector>
 #include <string>
@@ -170,4 +171,86 @@ std::string imdb_from_nfo(const char* cfile) {
    }
    free(file);
    return ret;
+}
+
+void get_movie_info(const char* file, int& length, int& width, int& height,
+                    std::string& audio, std::string& srt) {
+   int p[2];
+   pid_t f;
+   static char buff[2048], *sk, *ptr;
+   ssize_t r;
+
+   length = height = width = -1;
+   audio = srt = "";
+
+   if(pipe(p) != 0)
+      return;
+
+   // Run avprobe or ffprobe
+   if((f = fork()) == 0) {
+      close(p[0]);
+      close(1);
+      close(2);
+      dup2(p[1], 1);
+      dup2(p[1], 2);
+      close(p[1]);
+      setlocale(LC_ALL, "");
+      execlp("avprobe", "avprobe", file, (char*)NULL);
+      execlp("ffprobe", "ffprobe", file, (char*)NULL);
+      exit(0);
+   }
+
+   // Read the output
+   close(p[1]);
+   r = 1;
+   while(r > 0) {
+      buff[0] = ' ';
+      for(sk = buff; (sk < (buff + 2046)) && ((*(sk-1)) != '\n')
+          && (r > 0); r = read(p[0], sk++, 1));
+      (*(sk-1)) = 0;
+
+      // Get duration of the movie
+      if((sk = strstr(buff, "Duration: ")) != NULL) {
+         sk = sk + 10;
+         int h, m, s, ms;
+         if(sscanf(sk, "%d:%d:%d.%d", &h, &m, &s, &ms) == 4) {
+            length = h * 3600 + m * 60 + s + (ms>49?1:0);
+         }
+      }
+
+      // Get movie resolution
+      if((sk = strstr(buff, "Stream #")) != NULL &&
+         (sk = strstr(++sk, "Video: ")) != NULL &&
+         (sk = strstr(++sk,  ",")) != NULL &&
+         (sk = strstr(++sk,  ",")) != NULL) {
+         sk+=2;
+         sscanf(sk,"%dx%d", &width, &height);
+      }
+
+      // Get audio track languages
+      if((      sk = strstr(buff, "Stream #")) != NULL &&
+         (ptr = sk = strstr(++sk, "Audio: ")) != NULL &&
+         (      sk = strstr(buff, "(")) != NULL && sk++ < ptr &&
+         strncmp(sk, "und)", 4) != 0) {
+         if(!audio.empty())
+            audio.push_back(',');
+         while(isalpha(*sk)) {
+            audio.push_back(*sk);
+            sk++;
+         }
+      }
+
+      // Get subtitles track languages
+      if((      sk = strstr(buff, "Stream #")) != NULL &&
+         (ptr = sk = strstr(++sk, "Subtitle: ")) != NULL &&
+         (      sk = strstr(buff, "(")) != NULL && sk++ < ptr &&
+         strncmp(sk, "und)", 4) != 0) {
+         if(!srt.empty())
+            srt.push_back(',');
+         while(isalpha(*sk)) {
+            srt.push_back(*sk);
+            sk++;
+         }
+      }
+   }
 }

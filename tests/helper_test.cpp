@@ -73,6 +73,22 @@ TEST_CASE( "IMDB link extraction from NFO file", "[helper][imdb_from_nfo]" ) {
    }
 }
 
+// Test video metadata extraction
+TEST_CASE( "Video data extraction", "[helper][matadata]" ) {
+   SECTION("Simple extraction") {
+      std::string audios;
+      std::string subtitles;
+      int width, height, length;
+      get_movie_info(fixtures "/movies/breakdance.avi", length, width, height,
+                     audios, subtitles);
+      CHECK(audios.empty());
+      CHECK(subtitles.empty());
+      CHECK(width == 320);
+      CHECK(height == 240);
+      CHECK(length == 117);
+   }
+}
+
 // Test for hash computation
 TEST_CASE( "Hash computation", "[helper][hash]" ) {
    SECTION("Idempotent") {

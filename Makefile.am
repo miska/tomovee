@@ -15,7 +15,8 @@ tomovee_miner_SOURCES = src/miner.cpp
 tomovee_miner_LDADD = libtomovee.la $(SQLITE_LIBS)
 
 src/sql_init.h: $(top_srcdir)/src/structures.sql
-	echo "#define SQL_INIT \"`cat "$<"`\"" | sed 's|$$|\\|' | sed '$$ s|"\\|"|' > $@
+	echo "#define SQL_INIT \"`cat "$<"`\"" | \
+	sed -e 's|$$|\\|' | sed '$$ s|"\\|"|' > $@
 
 if TESTS
 AM_CXXFLAGS  += -I$(top_srcdir)/tests

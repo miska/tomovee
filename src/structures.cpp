@@ -9,6 +9,16 @@
 #include <tntdb/connect.h>
 #include <tntdb/row.h>
 
+void File::update_meta(const char* file) {
+   get_movie_info(file, length, width, height, audios, subtitles);
+   tntdb::Connection conn = tntdb::connectCached(db_url);
+   auto smt = conn.prepareCached("UPDATE files SET audios = :audio, "
+                                 "subtitles = :sub, width = :w, height = :h, "
+                                 "length = :l WHERE id = :id");
+   smt.set("audio", audios).set("sub", subtitles).set("w", width).
+       set("h", height).set("l", length).set("id", db_id).execute();
+}
+
 //! Update last checked time
 void Path::touch() {
    checked = time(NULL);
@@ -85,6 +95,7 @@ void File::update_info(const char* file) {
    // Set time
    added = time(NULL);
 
+   { // Database scope
    // Try whether we already have a file like that
    tntdb::Connection conn = tntdb::connectCached(db_url);
    tntdb::Statement smt;
@@ -109,6 +120,8 @@ void File::update_info(const char* file) {
 
    row[0].get(db_id);
    row[1].get(added);
+   } // End of database scope
+   update_meta(file);
 }
 
 void File::assimilate(File& other) {

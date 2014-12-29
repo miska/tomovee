@@ -74,10 +74,11 @@ class File {
    vector<Path> paths;
    //! When was file added into database
    time_t added;
+   std::string audios;
+   std::string subtitles;
+   int width, height, length;
 
 protected:
-   //! Update hash and filesize
-   void update_info(const char* file);
 
    //! Constructor used when loading from database
    File(uint32_t id, uint32_t mhash, uint64_t osdbhash, uint64_t size,
@@ -89,6 +90,10 @@ protected:
                              paths(paths),
                              added(added) {}
 public:
+   //! Update hash and filesize
+   void update_info(const char* file);
+   //! Update movie meta data like resolution, streams and length
+   void update_meta(const char* file);
    //! Constructor from file
    File(const char* file, const string& storage);
    //! Copy constructor

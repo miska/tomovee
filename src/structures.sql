@@ -5,6 +5,11 @@ CREATE TABLE IF NOT EXISTS files  (id INTEGER PRIMARY KEY AUTOINCREMENT,
                                    added TIMESTAMP,
                                    movie_id INTEGER,
                                    assigned_by TINYINT DEFAULT 0,
+                                   audios VARCHAR(32) DEFAULT '',
+                                   subtitles VARCHAR(32) DEFAULT '',
+                                   width INT DEFAULT -1,
+                                   height INT DEFAULT -1,
+                                   length INT DEFAULT -1,
                                    FOREIGN KEY(movie_id) REFERENCES movies(id));
 CREATE TABLE IF NOT EXISTS movies (id INTEGER PRIMARY KEY AUTOINCREMENT,
                                    imdb_id TEXT UNIQUE);
