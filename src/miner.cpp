@@ -4,7 +4,9 @@
 
 #include <stdio.h>
 #include <unistd.h>
+#include <libgen.h>
 #include <string>
+#include <string.h>
 #include <stdlib.h>
 #include <getopt.h>
 
@@ -14,7 +16,17 @@
 using namespace std;
 
 void print_help(const char* argv_0) {
-   printf("%s help\n", argv_0);
+   char *dp = strdup(argv_0);
+   printf("Usage info:\n");
+   printf("  %s [option] <path>\n", basename(dp));
+   printf("\n");
+   printf("Options:\n");
+   printf(" -s, --storage <st>  This storage is called <st>\n");
+   printf(" -d, --delete        Delete from database files no longer found in this run\n");
+   printf(" -v, --verbose       Be more verbose\n");
+   printf(" -h, --help          Show this help\n");
+   printf("\n");
+   free(dp);
 }
 
 //! Main for miner application
