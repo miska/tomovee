@@ -4,4 +4,10 @@ Tomovee
 image:https://travis-ci.org/miska/tomovee.svg?branch=master["Build Status", link="https://travis-ci.org/miska/tomovee"]
 image:https://coveralls.io/repos/miska/tomovee/badge.png?branch=master["Coverage Status", link="https://coveralls.io/r/miska/tomovee?branch=master"]
 
-Highly work in progress, no real functions there yet.
+Simple movie indexer and database. Currently only feature is miner process that
+will go through your files, find movies and put them into database together
+with some metadata. It supports multiple storages, so you can index your DVDs
+or other removable media and it should also detect when file just moved
+somewhere else. That's about it for now, there are plenty of ideas
+https://github.com/miska/tomovee/issues[floating around] and waiting for
+someone to implement them ;-)
