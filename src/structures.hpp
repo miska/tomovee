@@ -102,14 +102,24 @@ public:
                              osdbhash(other.osdbhash),
                              size(other.size),
                              paths(other.paths),
-                             added(other.added) {}
+                             added(other.added),
+                             audios(other.audios),
+                             subtitles(other.subtitles),
+                             width(other.width),
+                             height(other.height),
+                             length(other.length) {}
    //! Move constructor
    File(const File&& other): db_id(other.db_id),
                              mhash(other.mhash),
                              osdbhash(move(other.osdbhash)),
                              size(move(other.size)),
                              paths(move(other.paths)),
-                             added(other.added) {}
+                             added(other.added),
+                             audios(move(other.audios)),
+                             subtitles(move(other.subtitles)),
+                             width(other.width),
+                             height(other.height),
+                             length(other.length) {}
 
    const vector<Path>& get_paths() const { return paths; }
 
@@ -119,8 +129,6 @@ public:
               (size == other.size));
    }
 
-   //! Move all data from other file here
-   void assimilate(File& other);
    //! Return hash for Open Subtitle DataBase
    uint64_t get_osdb_hash() { return osdbhash; }
    //! Return size of the file

@@ -10,7 +10,12 @@
 #include <tntdb/row.h>
 
 void File::update_meta(const char* file) {
-   get_movie_info(file, length, width, height, audios, subtitles);
+   std::string a,s;
+   get_movie_info(file, length, width, height, a, s);
+   if(audios.empty())
+      audios = a;
+   if(subtitles.empty())
+      subtitles = s;
    tntdb::Connection conn = tntdb::connectCached(db_url);
    auto smt = conn.prepareCached("UPDATE files SET audios = :audio, "
                                  "subtitles = :sub, width = :w, height = :h, "
@@ -111,8 +116,9 @@ void File::update_info(const char* file) {
    smt.set("m", mhash).set("osdb", osdbhash).set("size", size).
        set("added", added).set("ass", NOT_ASSIGNED).execute();
 
-   // Get ID from the database
-   smt = conn.prepareCached("SELECT id, added FROM files WHERE "
+   // Get some data from the database
+   smt = conn.prepareCached("SELECT id, added, audios, subtitles FROM files "
+                            "WHERE "
                             "mhash = :m AND osdbhash = :osdb AND "
                             "size = :size LIMIT 1");
    row = smt.set("m", mhash).set("osdb", osdbhash).set("size", size).
@@ -120,18 +126,10 @@ void File::update_info(const char* file) {
 
    row[0].get(db_id);
    row[1].get(added);
+   row[2].get(audios);
+   row[3].get(subtitles);
    } // End of database scope
    update_meta(file);
-}
-
-void File::assimilate(File& other) {
-   if(looks_same(other)) {
-      for(auto i : other.paths) {
-         paths.push_back(Path(i));
-      }
-      other.paths.erase(other.paths.begin(), other.paths.end());
-      added = min(added, other.added);
-   }
 }
 
 void File::cleanup() {
