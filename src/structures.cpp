@@ -5,9 +5,7 @@
 #include "structures.hpp"
 #include "helper.hpp"
 
-#include <tntdb/connection.h>
-#include <tntdb/connect.h>
-#include <tntdb/row.h>
+#include <tntdb.h>
 
 void File::update_meta(const char* file) {
    std::string a,s;
@@ -151,6 +149,59 @@ void Path::cleanup(time_t older, std::string storage) {
    auto smt = conn.prepareCached("DELETE FROM paths WHERE checked < :ts AND "
                                                          "storage = :st");
    smt.set("ts", older).set("st", storage).execute();
+}
+
+void File::load_paths() {
+   tntdb::Connection conn = tntdb::connectCached(db_url);
+   tntdb::Statement smt;
+   smt = conn.prepareCached("SELECT id, storage, path, checked "
+                            "FROM paths WHERE file_id = :id");
+   smt.set("id", db_id);
+   for(auto row: smt) {
+      paths.push_back(Path(row.getUnsigned64("id"),
+                           row.getString("storage"),
+                           row.getString("path"),
+                           row.getUnsigned64("checked")));
+   }
+}
+
+std::vector<File> File::latest(int how_many, std::string storage) {
+   std::vector<File> ret;
+   tntdb::Connection conn = tntdb::connectCached(db_url);
+   tntdb::Statement smt;
+   if(storage.empty()) {
+      smt = conn.prepareCached("SELECT id, osdbhash, mhash, size, added, "
+                               "movie_id, assigned_by, audios, subtitles, "
+                               "width, height, length "
+                               "FROM files "
+                               "ORDER BY added DESC "
+                               "LIMIT :many");
+      smt.set("many", how_many);
+   } else {
+      smt = conn.prepareCached("SELECT id, osdbhash, mhash, size, added, "
+                               "movie_id, assigned_by, audios, subtitles, "
+                               "width, height, length "
+                               "FROM files, paths WHERE "
+                               "paths.file_id = files.id AND "
+                               "paths.storage = :st "
+                               "ORDER BY added DESC "
+                               "LIMIT :many");
+      smt.set("many", how_many).set("st", storage);
+   }
+   for(auto row: smt) {
+      ret.push_back(File(row.getUnsigned32("id"),
+                         row.getUnsigned32("mhash"),
+                         row.getUnsigned64("osdbhash"),
+                         row.getUnsigned64("size"),
+                         row.getUnsigned64("added"),
+                         row.getString("audios"),
+                         row.getString("subtitles"),
+                         row.getInt("width"),
+                         row.getInt("height"),
+                         row.getInt("length")
+                        ));
+   }
+   return ret;
 }
 
 Movie::Movie(std::string imdb_id) {

@@ -35,6 +35,14 @@ protected:
    //! Constructor
    Path(const string& st, const string& pth, uint64_t parent);
 public:
+   string get_storage() { return storage; }
+   string get_path() { return path; }
+   //! Constructor from database
+   Path(uint64_t id, const string& st, const string& pth, time_t checked):
+                             db_id(id),
+                             storage(st),
+                             path(pth),
+                             checked(checked) {}
    //! Copy constructor
    Path(const Path& other):  db_id(other.db_id),
                              storage(other.storage),
@@ -79,17 +87,24 @@ class File {
    int width, height, length;
 
 protected:
-
    //! Constructor used when loading from database
    File(uint32_t id, uint32_t mhash, uint64_t osdbhash, uint64_t size,
-        const vector<Path>& paths, time_t added = 0):
+        time_t added, string audios, string subtitles, int width, int height,
+        int length):
                              db_id(id),
                              mhash(mhash),
                              osdbhash(osdbhash),
                              size(size),
-                             paths(paths),
-                             added(added) {}
+                             added(added),
+                             audios(audios),
+                             subtitles(subtitles),
+                             width(width),
+                             height(height),
+                             length(length) {}
+   void load_paths();
 public:
+   //! Get time when file was added
+   time_t get_added() { return added; }
    //! Update hash and filesize
    void update_info(const char* file);
    //! Update movie meta data like resolution, streams and length
@@ -121,7 +136,10 @@ public:
                              height(other.height),
                              length(other.length) {}
 
-   const vector<Path>& get_paths() const { return paths; }
+   const vector<Path>& get_paths() { if(paths.empty())
+                                        load_paths();
+                                     return paths;
+                                   }
 
    //! Check whether files look same
    bool looks_same(const File& other) const {
@@ -137,6 +155,8 @@ public:
    void set_movie(movie_assigned type, uint64_t movie_id);
    //! Clean files that we do not have in any storage
    static void cleanup();
+   //! Get newest files/movies
+   static std::vector<File> latest(int how_many = 100, std::string = "");
 };
 
 class Movie {

@@ -9,10 +9,13 @@ libtomovee_la_SOURCES = src/helper.cpp src/structures.cpp
 
 src/helper.cpp: src/sql_init.h
 
-bin_PROGRAMS = tomovee_miner
+bin_PROGRAMS = tomovee_miner tomovee_cli
 
 tomovee_miner_SOURCES = src/miner.cpp
-tomovee_miner_LDADD = libtomovee.la $(SQLITE_LIBS)
+tomovee_miner_LDADD = libtomovee.la
+
+tomovee_cli_SOURCES = src/cli.cpp
+tomovee_cli_LDADD = libtomovee.la
 
 src/sql_init.h: $(top_srcdir)/src/structures.sql
 	echo "#define SQL_INIT \"`cat "$<"`\"" | \
