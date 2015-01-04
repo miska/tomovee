@@ -11,8 +11,10 @@
 #include <locale.h>
 #include <magic.h>
 #include <vector>
+#include <list>
 #include <string>
 #include <fstream>
+#include <errno.h>
 
 #include <tntdb/connection.h>
 #include <tntdb/connect.h>
@@ -81,38 +83,50 @@ bool is_video(const char *file) {
 void find(const char* path,
           function<void(const char*)> action,
           function<bool(const char*)> file_test,
-          function<bool(const char*)> recurse_test)
-{
+          function<bool(const char*)> recurse_test) {
 
-   // Check we want to be here
-   if(!recurse_test(path))
-      return;
+   std::list<string> recurse;
+   recurse.push_back(path);
 
-   // Open directory
-   DIR * dir = opendir(path);
+   while(!recurse.empty()) {
+      // Get top of the queue
+      string pth = recurse.front();
+      recurse.pop_front();
 
-   if(dir == NULL) return;
+      // Check we want to be here
+      if(!recurse_test(pth.c_str())) {
+         continue;
+      }
 
-   struct stat st;
-   string l_path(path);
-   static char buff[PATH_MAX];
-   dirent* entry = NULL;
+      // Open directory
+      errno = 0;
+      DIR * dir = opendir(pth.c_str());
+      if(dir == NULL) {
+         fprintf(stderr, "Error opening directory '%s'!\n%s", path, strerror(errno));
+         return;
+      }
 
-   // Iterate through directory content
-   while((entry = readdir(dir)) != NULL) {
-      if((strcmp(entry->d_name,".") != 0) && (strcmp(entry->d_name,"..") != 0)) {
-         snprintf(buff,PATH_MAX,"%s/%s",l_path.c_str(),entry->d_name);
-         stat(buff, &st);
-         if(S_ISDIR(st.st_mode)) {
-            find(buff, action, file_test, recurse_test);
-         } else if(S_ISREG(st.st_mode)) {
-            if(file_test(buff)) {
-               action(buff);
+      // Iterate through directory content
+      dirent* entry = NULL;
+      string buff;
+      struct stat st;
+      while((entry = readdir(dir)) != NULL) {
+         if((strcmp(entry->d_name,".") != 0) && (strcmp(entry->d_name,"..") != 0)) {
+            buff = pth + "/" + entry->d_name;
+            stat(buff.c_str(), &st);
+            // Is it a directory?
+            if(S_ISDIR(st.st_mode)) {
+               // Put it at the end of the list
+               recurse.push_back(buff);
+            // Is it regular file?
+            } else if(S_ISREG(st.st_mode)) {
+               if(file_test(buff.c_str()))
+                  action(buff.c_str());
             }
          }
       }
+      closedir(dir);
    }
-   closedir(dir);
 }
 
 /*
