@@ -20,7 +20,7 @@ void print_help(const char* argv_0) {
    printf("  %s [-s <storage>] <command> [options]\n", basename(dp));
    printf("\n");
    printf("Commands:\n");
-   printf("   new [number]  Show (number) new files/movies\n");
+   printf("   new [number]  Show [number] (default 100) of new files/movies\n");
    printf("   help          Show this help\n");
    printf("\n");
    free(dp);
@@ -57,12 +57,17 @@ int main(int argc, char **argv) {
    db_url = std::string("sqlite:") + outdir + "/.tomovee.sqlite";
    init_db();
 
-   char buff[1024];
-   for(auto f : File::latest()) {
-      time_t tmp = f.get_added();
-      strftime(buff, sizeof(buff), "%F %T", localtime(&tmp));
-      printf("%s : \n", buff);
-      for(auto pth : f.get_paths())
-         printf("   %s : %s\n", pth.get_storage().c_str(), pth.get_path().c_str());
+   if(strcmp(argv[optind],"new")==0) {
+      int limit=100;
+      if(optind+1 < argc)
+         sscanf(argv[optind+1], "%d", &limit);
+      char buff[1024];
+      for(auto f : File::latest(limit)) {
+         time_t tmp = f.get_added();
+         strftime(buff, sizeof(buff), "%F %T", localtime(&tmp));
+         printf("%s : \n", buff);
+         for(auto pth : f.get_paths())
+            printf("   %s : %s\n", pth.get_storage().c_str(), pth.get_path().c_str());
+      }
    }
 }
