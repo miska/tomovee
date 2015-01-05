@@ -104,7 +104,10 @@ protected:
    void load_paths();
 public:
    //! Get time when file was added
-   time_t get_added() { return added; }
+   time_t get_added() { return added;  }
+   int get_width()    { return width;  }
+   int get_height()   { return height; }
+   int get_length()   { return length; }
    //! Update hash and filesize
    void update_info(const char* file);
    //! Update movie meta data like resolution, streams and length
@@ -157,6 +160,8 @@ public:
    static void cleanup();
    //! Get newest files/movies
    static std::vector<File> latest(int how_many = 100, std::string = "");
+   //! Get files/movies matching the pattern
+   static std::vector<File> search(string pattern, int how_many = 100, std::string = "");
 };
 
 class Movie {

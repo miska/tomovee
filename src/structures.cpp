@@ -165,43 +165,58 @@ void File::load_paths() {
    }
 }
 
-std::vector<File> File::latest(int how_many, std::string storage) {
-   std::vector<File> ret;
-   tntdb::Connection conn = tntdb::connectCached(db_url);
-   tntdb::Statement smt;
-   if(storage.empty()) {
-      smt = conn.prepareCached("SELECT id, osdbhash, mhash, size, added, "
-                               "movie_id, assigned_by, audios, subtitles, "
-                               "width, height, length "
-                               "FROM files "
-                               "ORDER BY added DESC "
-                               "LIMIT :many");
-      smt.set("many", how_many);
-   } else {
-      smt = conn.prepareCached("SELECT id, osdbhash, mhash, size, added, "
-                               "movie_id, assigned_by, audios, subtitles, "
-                               "width, height, length "
-                               "FROM files, paths WHERE "
-                               "paths.file_id = files.id AND "
-                               "paths.storage = :st "
-                               "ORDER BY added DESC "
-                               "LIMIT :many");
-      smt.set("many", how_many).set("st", storage);
-   }
-   for(auto row: smt) {
-      ret.push_back(File(row.getUnsigned32("id"),
-                         row.getUnsigned32("mhash"),
-                         row.getUnsigned64("osdbhash"),
-                         row.getUnsigned64("size"),
-                         row.getUnsigned64("added"),
-                         row.getString("audios"),
-                         row.getString("subtitles"),
-                         row.getInt("width"),
-                         row.getInt("height"),
-                         row.getInt("length")
-                        ));
-   }
+#define _FILE_QUERY_P_(QUERY_WHERE, QUERY_SET) \
+   std::vector<File> ret; \
+   tntdb::Connection conn = tntdb::connectCached(db_url); \
+   tntdb::Statement smt; \
+   if(storage.empty()) { \
+      smt = conn.prepareCached("SELECT files.id, osdbhash, mhash, size, added, " \
+                               "movie_id, assigned_by, audios, subtitles, " \
+                               "width, height, length " \
+                               "FROM files, paths WHERE " \
+                               "paths.file_id = files.id " \
+                               QUERY_WHERE \
+                               " LIMIT :many"); \
+      smt.QUERY_SET; \
+   } else { \
+      smt = conn.prepareCached("SELECT files.id, osdbhash, mhash, size, added, " \
+                               "movie_id, assigned_by, audios, subtitles, " \
+                               "width, height, length " \
+                               "FROM files, paths WHERE " \
+                               "paths.file_id = files.id AND " \
+                               "paths.storage = :st " \
+                               QUERY_WHERE \
+                               " LIMIT :many"); \
+      smt.set("st", storage).QUERY_SET; \
+   } \
+   for(auto row: smt) { \
+      ret.push_back(File(row.getUnsigned32("id"), \
+                         row.getUnsigned32("mhash"), \
+                         row.getUnsigned64("osdbhash"), \
+                         row.getUnsigned64("size"), \
+                         row.getUnsigned64("added"), \
+                         row.getString("audios"), \
+                         row.getString("subtitles"), \
+                         row.getInt("width"), \
+                         row.getInt("height"), \
+                         row.getInt("length") \
+                        )); \
+   } \
    return ret;
+
+#define FILE_QUERY(QUERY_WHERE, QUERY_SET) \
+   _FILE_QUERY_P_("AND " QUERY_WHERE, set("many", how_many).QUERY_SET)
+
+#define FILE_QUERY_SIMPLE(QUERY_WHERE) \
+   _FILE_QUERY_P_(QUERY_WHERE, set("many", how_many))
+
+std::vector<File> File::search(std::string pattern, int how_many, std::string storage) {
+   pattern = "%" + pattern + "%";
+   FILE_QUERY("paths.path LIKE :pat", set("pat", pattern))
+}
+
+std::vector<File> File::latest(int how_many, std::string storage) {
+   FILE_QUERY_SIMPLE("ORDER BY added DESC")
 }
 
 Movie::Movie(std::string imdb_id) {
