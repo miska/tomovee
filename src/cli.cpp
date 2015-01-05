@@ -37,7 +37,11 @@ void display_file(File &f) {
 void print_help(const char* argv_0) {
    char *dp = strdup(argv_0);
    printf("Usage info:\n");
-   printf("  %s [-s <storage>]|[-c count ] <command> [options]\n", basename(dp));
+   printf("  %s [options] <command> [arguments]\n", basename(dp));
+   printf("\n");
+   printf("Options:\n");
+   printf("   -c <count>        Show <count> files at maximum\n");
+   printf("   -s <storage>      Restrict queries to <storage>\n");
    printf("\n");
    printf("Commands:\n");
    printf("   new               Show of new files/movies\n");
@@ -50,7 +54,7 @@ void print_help(const char* argv_0) {
 //! Main for miner application
 int main(int argc, char **argv) {
    string storage;
-   int limit=100;
+   int limit=10;
    const char* outdir;
 
    int optind = 1;
