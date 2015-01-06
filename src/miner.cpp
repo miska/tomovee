@@ -113,9 +113,9 @@ int main(int argc, char **argv) {
            auto f = File(name + 2, storage);
            if(verbose) {
               if(time(NULL) - f.get_added() > 1) {
-                 printf("File '%s' was already into database.\n", name + 2);
+                 printf("Checked file '%s' as it was already in the database.\n", name + 2);
               } else {
-                 printf("File '%s' added into database.\n", name + 2);
+                 printf("Added file '%s' into database.\n", name + 2);
               }
            }
            std::string i = imdb_from_nfo(name);
