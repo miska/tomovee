@@ -3,6 +3,7 @@ Tomovee
 
 image:https://travis-ci.org/miska/tomovee.svg?branch=master["Build Status", link="https://travis-ci.org/miska/tomovee"]
 image:https://coveralls.io/repos/miska/tomovee/badge.png?branch=master["Coverage Status", link="https://coveralls.io/r/miska/tomovee?branch=master"]
+image:https://scan.coverity.com/projects/3844/badge.svg["Coverity Analyses", link="https://scan.coverity.com/projects/3844"]
 
 Simple movie indexer and database. Currently only feature is miner process that
 will go through your files, find movies and put them into database together
