@@ -15,16 +15,24 @@
 
 using namespace std;
 
+bool should_scan(const char* where) {
+   std::string tmp = where;
+   tmp += "/.no_video";
+   return access(tmp.c_str(), F_OK) != 0;
+}
+
 void print_help(const char* argv_0) {
    char *dp = strdup(argv_0);
    printf("Usage info:\n");
    printf("  %s [option] <path>\n", basename(dp));
    printf("\n");
    printf("Options:\n");
-   printf(" -s, --storage <st>  This storage is called <st>\n");
-   printf(" -d, --delete        Delete from database files no longer found in this run\n");
-   printf(" -v, --verbose       Be more verbose\n");
-   printf(" -h, --help          Show this help\n");
+   printf(" -s, --storage <st>  This storage is called <st>.\n");
+   printf(" -d, --delete        Delete from database paths no longer found in this run.\n");
+   printf(" -D, --delete-all    Delete from database paths no longer found in this run\n");
+   printf("                     and files without any path.\n");
+   printf(" -v, --verbose       Be more verbose.\n");
+   printf(" -h, --help          Show this help.\n");
    printf("\n");
    free(dp);
 }
@@ -32,15 +40,17 @@ void print_help(const char* argv_0) {
 //! Main for miner application
 int main(int argc, char **argv) {
    static struct option opts[] = {
-      {"storage", required_argument, NULL, 's' },
-      {"delete",  no_argument      , NULL, 'd' },
-      {"verbose", no_argument      , NULL, 'v' },
-      {"help"   , no_argument      , NULL, 'h' },
-      { 0       , 0                , 0   ,  0  }
+      {"storage",     required_argument, NULL, 's' },
+      {"delete",      no_argument      , NULL, 'd' },
+      {"delete-all",  no_argument      , NULL, 'D' },
+      {"verbose",     no_argument      , NULL, 'v' },
+      {"help"   ,     no_argument      , NULL, 'h' },
+      { 0       ,     0                , 0   ,  0  }
    };
    int c;
    bool verbose = false;
    bool del = false;
+   bool del_all = false;
    time_t del_ts = time(NULL);
    int index;
    const char *outdir = NULL;
@@ -61,6 +71,10 @@ int main(int argc, char **argv) {
          break;
       case 'd':
          del = true;
+         break;
+      case 'D':
+         del = true;
+         del_all = true;
          break;
       default:
       case '?':
@@ -89,7 +103,7 @@ int main(int argc, char **argv) {
    db_url = std::string("sqlite:") + outdir + "/.tomovee.sqlite";
    init_db();
 
-   printf("Scanning directory '%s' for storage '%s'\n", argv[argc-1], storage.c_str());
+   printf("Scanning directory '%s' in storage '%s'\n", argv[argc-1], storage.c_str());
    if(chdir(argv[argc-1]) != 0) {
       fprintf(stderr, "Can't chdir into %s!\n", argv[argc-1]);
       exit(-1);
@@ -97,8 +111,13 @@ int main(int argc, char **argv) {
    find(".",
         [&](const char* name) {
            auto f = File(name + 2, storage);
-           if(verbose)
-              printf("File '%s' added into database.\n", name + 2);
+           if(verbose) {
+              if(time(NULL) - f.get_added() > 1) {
+                 printf("File '%s' was already into database.\n", name + 2);
+              } else {
+                 printf("File '%s' added into database.\n", name + 2);
+              }
+           }
            std::string i = imdb_from_nfo(name);
            if(verbose && !i.empty()) {
               printf("Got IMDB ID '%s' from NFO file.\n", i.c_str());
@@ -108,12 +127,20 @@ int main(int argc, char **argv) {
         },
         [](const char* name) -> bool { return is_video(name); },
         verbose?
-           [](const char* name) -> bool { printf(" ... %s\n", name + 2); return true; }
+           [](const char* name) -> bool { if(should_scan(name)) {
+                                             printf("Entering directory %s\n", name);
+                                             return true;
+                                          } else {
+                                             printf("Skipping directory %s\n", name);
+                                             return false;
+                                          }
+                                        }
         :
-           [](const char*) -> bool { return true; }
+           [](const char* name) -> bool { return should_scan(name); }
        );
    if(del) {
       Path::cleanup(del_ts, storage);
-      File::cleanup();
+      if(del_all)
+         File::cleanup();
    }
 }
