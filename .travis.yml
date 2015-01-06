@@ -8,3 +8,15 @@ script:
   - ./autogen.sh && ./configure --enable-gcov --enable-tests && make test && make all
 after_success:
   - coveralls --exclude ext --exclude tests --exclude src/config.h --exclude src/\*.hpp -r . -b .
+env:
+  global:
+   - secure: "JMsbxCr5mACs5jUOBdiu1dXV/9qN2boAR+ovmiuVlt9qYOgFevU6LGVgrrUcQxUGpBeEzcFk5/Rfcpm+4yhcOb5rUEtAxe8PLwPN53ISXAePs5W9FHaqBn6PoLXHpTQ2ePmGA66oaOscRVeocNkzqL77cl/XwCry4/8A+neFhh4="
+addons:
+  coverity_scan:
+    project:
+      name: "miska/tomovee"
+      description: "Build submitted via Travis CI"
+    notification_email: michal@hrusecky.net
+    build_command_prepend: "./autogen.sh && ./configure --enable-gcov --enable-tests"
+    build_command: "make test && make all"
+    branch_pattern: coverity_scan
