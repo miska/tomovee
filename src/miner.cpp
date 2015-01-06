@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
    string path, storage;
 
    // Parse the options
-   while((c = getopt_long(argc, argv, "hdvs:", opts, &index)) != -1) {
+   while((c = getopt_long(argc, argv, "hdDvs:", opts, &index)) != -1) {
       switch(c) {
       case 'h':
          print_help(argv[0]);
