@@ -18,5 +18,5 @@ addons:
       description: "Build submitted via Travis CI"
     notification_email: michal@hrusecky.net
     build_command_prepend: "./autogen.sh && ./configure --enable-gcov --enable-tests"
-    build_command: "make test && make all"
+    build_command: "make all"
     branch_pattern: coverity_scan
