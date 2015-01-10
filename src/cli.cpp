@@ -65,13 +65,17 @@ int main(int argc, char **argv) {
    }
 
    // Where to store data?
-   outdir = getenv("XDG_CONFIG");
-   if(outdir == NULL)
-      outdir = getenv("HOME");
-   if(outdir == NULL)
-      outdir = ".";
+   if(getenv("TOMOVEE_DB") == NULL) {
+      outdir = getenv("XDG_CONFIG");
+      if(outdir == NULL)
+         outdir = getenv("HOME");
+      if(outdir == NULL)
+         outdir = ".";
 
-   db_url = std::string("sqlite:") + outdir + "/.tomovee.sqlite";
+      db_url = std::string("sqlite:") + outdir + "/.tomovee.sqlite";
+   } else {
+      db_url = getenv("TOMOVEE_DB");
+   }
    init_db();
 
    int last_optind;

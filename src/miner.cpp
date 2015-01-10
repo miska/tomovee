@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <libgen.h>
 #include <string>
+#include <set>
 #include <string.h>
 #include <stdlib.h>
 #include <getopt.h>
@@ -15,10 +16,13 @@
 
 using namespace std;
 
+std::set<std::string> exclude;
+
 bool should_scan(const char* where) {
    std::string tmp = where;
    tmp += "/.no_video";
-   return access(tmp.c_str(), F_OK) != 0;
+   return (access(tmp.c_str(), F_OK) != 0) && 
+          (exclude.find(where) == exclude.end());
 }
 
 void print_help(const char* argv_0) {
@@ -31,6 +35,8 @@ void print_help(const char* argv_0) {
    printf(" -d, --delete        Delete from database paths no longer found in this run.\n");
    printf(" -D, --delete-all    Delete from database paths no longer found in this run\n");
    printf("                     and files without any path.\n");
+   printf(" -i, --include       Include only following directories (path relative to the root)\n");
+   printf(" -e, --exclude       Exclude following directories (path relative to the root)\n");
    printf(" -v, --verbose       Be more verbose.\n");
    printf(" -h, --help          Show this help.\n");
    printf("\n");
@@ -41,6 +47,8 @@ void print_help(const char* argv_0) {
 int main(int argc, char **argv) {
    static struct option opts[] = {
       {"storage",     required_argument, NULL, 's' },
+      {"exclude",     required_argument, NULL, 'e' },
+      {"include",     required_argument, NULL, 'i' },
       {"delete",      no_argument      , NULL, 'd' },
       {"delete-all",  no_argument      , NULL, 'D' },
       {"verbose",     no_argument      , NULL, 'v' },
@@ -51,6 +59,7 @@ int main(int argc, char **argv) {
    bool verbose = false;
    bool del = false;
    bool del_all = false;
+   std::set<std::string> include;
    time_t del_ts = time(NULL);
    int index;
    const char *outdir = NULL;
@@ -58,13 +67,25 @@ int main(int argc, char **argv) {
    string path, storage;
 
    // Parse the options
-   while((c = getopt_long(argc, argv, "hdDvs:", opts, &index)) != -1) {
+   while((c = getopt_long(argc, argv, "hdDvs:e:i:", opts, &index)) != -1) {
       switch(c) {
       case 'h':
          print_help(argv[0]);
          exit(0);
       case 's':
          storage = optarg;
+         break;
+      case 'e':
+         if(optarg[0] == '.')
+            exclude.insert(optarg);
+         else
+            exclude.insert(std::string("./") + optarg);
+         break;
+      case 'i':
+         if(optarg[0] == '.')
+            include.insert(optarg);
+         else
+            include.insert(std::string("./") + optarg);
          break;
       case 'v':
          verbose = true;
@@ -94,13 +115,17 @@ int main(int argc, char **argv) {
    }
 
    // Where to store data?
-   outdir = getenv("XDG_CONFIG");
-   if(outdir == NULL)
-      outdir = getenv("HOME");
-   if(outdir == NULL)
-      outdir = ".";
+   if(getenv("TOMOVEE_DB") == NULL) {
+      outdir = getenv("XDG_CONFIG");
+      if(outdir == NULL)
+         outdir = getenv("HOME");
+      if(outdir == NULL)
+         outdir = ".";
 
-   db_url = std::string("sqlite:") + outdir + "/.tomovee.sqlite";
+      db_url = std::string("sqlite:") + outdir + "/.tomovee.sqlite";
+   } else {
+      db_url = getenv("TOMOVEE_DB");
+   }
    init_db();
 
    printf("Scanning directory '%s' in storage '%s'\n", argv[argc-1], storage.c_str());
@@ -108,7 +133,10 @@ int main(int argc, char **argv) {
       fprintf(stderr, "Can't chdir into %s!\n", argv[argc-1]);
       exit(-1);
    }
-   find(".",
+   if(include.empty())
+      include.insert(".");
+   for(auto i:include)
+   find(i.c_str(),
         [&](const char* name) {
            auto f = File(name + 2, storage);
            if(verbose) {
