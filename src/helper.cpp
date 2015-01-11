@@ -205,10 +205,15 @@ void get_movie_info(const char* file, int& length, int& width, int& height,
    length = height = width = -1;
    audio = srt = "";
 
-   if(pipe(p) != 0)
+   errno = 0;
+   if(pipe(p) != 0) {
+      fprintf(stderr, "Can't create pipe!\n");
+      fprintf(stderr, "ERROR: %s!\n", strerror(errno));
       return;
+   }
 
    // Run avprobe or ffprobe
+   errno = 0;
    if((f = fork()) == 0) {
       close(p[0]);
       close(1);
@@ -221,6 +226,12 @@ void get_movie_info(const char* file, int& length, int& width, int& height,
       execlp("ffprobe", "ffprobe", file, (char*)NULL);
       close(p[1]);
       exit(0);
+   }
+
+   if(f < 0) {
+      fprintf(stderr, "Can't fork!\n");
+      fprintf(stderr, "ERROR: %s!\n", strerror(errno));
+      return;
    }
 
    // Read the output
