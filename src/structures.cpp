@@ -6,6 +6,9 @@
 #include "helper.hpp"
 
 #include <tntdb.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 void File::update_meta(const char* file) {
    if((length > 0) && (width > 0) && (height > 0))
@@ -77,16 +80,16 @@ bool Path::operator==(const Path& b) const {
    return ((storage == b.storage) && (path == b.path));
 }
 
-File::File(const char* file, const string& storage) {
+File::File(const char* file, const string& storage, bool use_mtime) {
    added = time(NULL);
    length = -1;
    width = -1;
    height = -1;
-   update_info(file);
+   update_info(file, use_mtime);
    paths.push_back(Path(storage, file, db_id));
 }
 
-void File::update_info(const char* file) {
+void File::update_info(const char* file, bool use_mtime) {
    FILE* fl;
 
    // Set size
@@ -99,7 +102,16 @@ void File::update_info(const char* file) {
    fclose(fl);
 
    // Set time
-   added = time(NULL);
+   added = 0;
+   if(use_mtime) {
+      struct stat st;
+      if(stat(file, &st) == 0) {
+         added = st.st_mtime;
+      }
+   }
+   if(added == 0) {
+      added = time(NULL);
+   }
 
    { // Database scope
    // Try whether we already have a file like that
@@ -127,7 +139,14 @@ void File::update_info(const char* file) {
          selectRow();
 
    row[0].get(db_id);
-   row[1].get(added);
+   time_t db_added;
+   row[1].get(db_added);
+   if(added < db_added) {
+      smt = conn.prepareCached("UPDATE files SET added = :added WHERE id = :id");
+      smt.set("added", added).set("id", db_id).execute();
+   } else {
+      added = db_added;
+   }
    row[2].get(audios);
    row[3].get(subtitles);
    row[4].get(length);

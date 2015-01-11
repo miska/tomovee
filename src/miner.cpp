@@ -32,6 +32,7 @@ void print_help(const char* argv_0) {
    printf("\n");
    printf("Options:\n");
    printf(" -s, --storage <st>  This storage is called <st>.\n");
+   printf(" -m, --mtime         Use modification time to indicate when was the file added.\n");
    printf(" -d, --delete        Delete from database paths no longer found in this run.\n");
    printf(" -D, --delete-all    Delete from database paths no longer found in this run\n");
    printf("                     and files without any path.\n");
@@ -50,6 +51,7 @@ int main(int argc, char **argv) {
       {"exclude",     required_argument, NULL, 'e' },
       {"include",     required_argument, NULL, 'i' },
       {"delete",      no_argument      , NULL, 'd' },
+      {"mtime",       no_argument      , NULL, 'm' },
       {"delete-all",  no_argument      , NULL, 'D' },
       {"verbose",     no_argument      , NULL, 'v' },
       {"help"   ,     no_argument      , NULL, 'h' },
@@ -58,6 +60,7 @@ int main(int argc, char **argv) {
    int c;
    bool verbose = false;
    bool del = false;
+   bool mtime = false;
    bool del_all = false;
    std::set<std::string> include;
    time_t del_ts = time(NULL);
@@ -67,13 +70,16 @@ int main(int argc, char **argv) {
    string path, storage;
 
    // Parse the options
-   while((c = getopt_long(argc, argv, "hdDvs:e:i:", opts, &index)) != -1) {
+   while((c = getopt_long(argc, argv, "mhdDvs:e:i:", opts, &index)) != -1) {
       switch(c) {
       case 'h':
          print_help(argv[0]);
          exit(0);
       case 's':
          storage = optarg;
+         break;
+      case 'm':
+         mtime = true;
          break;
       case 'e':
          if(optarg[0] == '.')
@@ -138,13 +144,20 @@ int main(int argc, char **argv) {
    for(auto i:include)
    find(i.c_str(),
         [&](const char* name) {
-           auto f = File(name + 2, storage);
+           auto f = File(name + 2, storage, mtime);
            if(verbose) {
+              if(!mtime) {
               if(time(NULL) - f.get_added() > 1) {
                  printf("Checked file '%s' as it was already in the database.\n", name + 2);
               } else {
                  printf("Added file '%s' into database.\n", name + 2);
+              } } else {
+                 static char buff[128];
+                 time_t added = f.get_added();
+                 strftime(buff, sizeof(buff), "%F %T", localtime(&added));
+                 printf("File '%s' was added on %s.\n", name + 2, buff);
               }
+
            }
            std::string i = imdb_from_nfo(name);
            if(verbose && !i.empty()) {

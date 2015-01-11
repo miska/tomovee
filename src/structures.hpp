@@ -109,11 +109,11 @@ public:
    int get_height()   { return height; }
    int get_length()   { return length; }
    //! Update hash and filesize
-   void update_info(const char* file);
+   void update_info(const char* file, bool use_mtime = false);
    //! Update movie meta data like resolution, streams and length
    void update_meta(const char* file);
    //! Constructor from file
-   File(const char* file, const string& storage);
+   File(const char* file, const string& storage, bool use_mtime = false);
    //! Copy constructor
    File(const File& other):  db_id(other.db_id),
                              mhash(other.mhash),
