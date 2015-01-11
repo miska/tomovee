@@ -27,7 +27,7 @@ void display_file(File &f) {
    if(f.get_width() > 0 && f.get_height() > 0)
       printf("  resolution: %dx%d\n", f.get_width(), f.get_height());
    if(f.get_length() > 0)
-      printf("  length:     %d:%d\n", f.get_length()/3600, (f.get_length()%3600)/60);
+      printf("  length:     %d:%02d:%02d\n", f.get_length()/3600, (f.get_length()%3600)/60, f.get_length()%60);
    printf("  paths:\n");
    for(auto pth : f.get_paths())
       printf("    %s://%s\n", pth.get_storage().c_str(), pth.get_path().c_str());
