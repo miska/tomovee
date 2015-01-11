@@ -219,6 +219,7 @@ void get_movie_info(const char* file, int& length, int& width, int& height,
       setlocale(LC_ALL, "");
       execlp("avprobe", "avprobe", file, (char*)NULL);
       execlp("ffprobe", "ffprobe", file, (char*)NULL);
+      close(p[1]);
       exit(0);
    }
 
@@ -276,6 +277,6 @@ void get_movie_info(const char* file, int& length, int& width, int& height,
          }
       }
    }
-   close(p[1]);
+   close(p[0]);
    wait(NULL);
 }
