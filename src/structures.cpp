@@ -88,10 +88,8 @@ void File::update_info(const char* file) {
    if((fl = fopen(file,"r")) == NULL) return;
    fseek(fl, 0, SEEK_END);
    size = ftell(fl);
-   fclose(fl);
 
    // Calculate hashes
-   if((fl = fopen(file,"r")) == NULL) return;
    compute_hash(osdbhash, mhash, fl);
    fclose(fl);
 

@@ -4,6 +4,7 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <sys/wait.h>
 #include <dirent.h>
 #include <unistd.h>
 #include <string.h>
@@ -31,9 +32,12 @@ void compute_hash(uint64_t& osdb_hash, uint32_t& m_hash, FILE * handle) {
         uint64_t tmp;
         size_t i;
 
-        fseek(handle, 0, SEEK_END);
-        fsize = ftell(handle);
-        fseek(handle, 0, SEEK_SET);
+        if(fseek(handle, 0, SEEK_END) < 0)
+            return;
+        if((fsize = ftell(handle)) == (uint64_t)-1)
+            return;
+        if(fseek(handle, 0, SEEK_SET) < 0)
+            return;
 
         osdb_hash = fsize;
         m_hash = fsize;
@@ -42,15 +46,17 @@ void compute_hash(uint64_t& osdb_hash, uint32_t& m_hash, FILE * handle) {
             fread((char*)&tmp, sizeof(tmp), 1, handle);
             osdb_hash += tmp, i++);
 
-        fseek(handle, (uint64_t)(
+        if(fseek(handle, (uint64_t)(
                         ((fsize/((uint64_t)2)) > (uint64_t)32768)?
-                         (fsize/((uint64_t)2) - 32768) : 0), SEEK_SET);
+                         (fsize/((uint64_t)2) - 32768) : 0), SEEK_SET) < 0)
+            return;
         for(uint32_t tmp = 0, i = 0; i < (size_t)65536/sizeof(tmp) &&
             fread((char*)&tmp, sizeof(tmp), 1, handle);
             m_hash += tmp, i++);
 
-        fseek(handle, (uint64_t)((fsize > (uint64_t)65536) ?
-                                  fsize - 65536 : 0), SEEK_SET);
+        if(fseek(handle, (uint64_t)((fsize > (uint64_t)65536) ?
+                                  fsize - 65536 : 0), SEEK_SET) < 0)
+            return;
         for(uint64_t tmp = 0, i = 0; i < 65536/sizeof(tmp) &&
             fread((char*)&tmp, sizeof(tmp), 1, handle);
             osdb_hash += tmp, i++);
@@ -113,7 +119,8 @@ void find(const char* path,
       while((entry = readdir(dir)) != NULL) {
          if((strcmp(entry->d_name,".") != 0) && (strcmp(entry->d_name,"..") != 0)) {
             buff = pth + "/" + entry->d_name;
-            stat(buff.c_str(), &st);
+            if(stat(buff.c_str(), &st) != 0)
+               continue;
             // Is it a directory?
             if(S_ISDIR(st.st_mode)) {
                // Put it at the end of the list
@@ -237,7 +244,8 @@ void get_movie_info(const char* file, int& length, int& width, int& height,
          (sk = strstr(++sk, "Video: ")) != NULL &&
          (sk = strstr(++sk,  ",")) != NULL &&
          (sk = strstr(++sk,  ",")) != NULL) {
-         sk+=2;
+         sk++;
+         while(*sk == ' ') sk++;
          sscanf(sk,"%dx%d", &width, &height);
       }
 
@@ -267,4 +275,6 @@ void get_movie_info(const char* file, int& length, int& width, int& height,
          }
       }
    }
+   close(p[1]);
+   wait(NULL);
 }

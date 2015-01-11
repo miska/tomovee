@@ -23,11 +23,11 @@ TEST_CASE( "Find works", "[helper][find]" ) {
    // Find all files without recursing too deep
    SECTION("Iterate/count files without descending too far.") {
       find(fixtures, [&test](const char* ) { test += ";"; },
-         [](const char*     ) { return true; },
-         [](const char* file) { return strcmp(fixtures "/dirs",file)==0 ||
-                                       strcmp(fixtures        ,file)==0; } );
+         [](const char*    ) { return true; },
+         [](const char* dir) { return strcmp(fixtures "/dirs",dir)==0 ||
+                                      strcmp(fixtures        ,dir)==0; } );
 
-      CHECK(test == string(";;;"));
+      CHECK(test == string(";;;;"));
    }
 
    // Find file with path containing "inside"
