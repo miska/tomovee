@@ -8,6 +8,8 @@
 #include <tntdb.h>
 
 void File::update_meta(const char* file) {
+   if((length > 0) && (width > 0) && (height > 0))
+      return;
    std::string a,s;
    get_movie_info(file, length, width, height, a, s);
    if(audios.empty())
@@ -77,6 +79,9 @@ bool Path::operator==(const Path& b) const {
 
 File::File(const char* file, const string& storage) {
    added = time(NULL);
+   length = -1;
+   width = -1;
+   height = -1;
    update_info(file);
    paths.push_back(Path(storage, file, db_id));
 }
@@ -113,7 +118,8 @@ void File::update_info(const char* file) {
        set("added", added).set("ass", NOT_ASSIGNED).execute();
 
    // Get some data from the database
-   smt = conn.prepareCached("SELECT id, added, audios, subtitles FROM files "
+   smt = conn.prepareCached("SELECT id, added, audios, subtitles, length, "
+                            "width, height FROM files "
                             "WHERE "
                             "mhash = :m AND osdbhash = :osdb AND "
                             "size = :size LIMIT 1");
@@ -124,6 +130,9 @@ void File::update_info(const char* file) {
    row[1].get(added);
    row[2].get(audios);
    row[3].get(subtitles);
+   row[4].get(length);
+   row[5].get(width);
+   row[6].get(height);
    } // End of database scope
    update_meta(file);
 }

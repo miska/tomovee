@@ -123,8 +123,9 @@ void find(const char* path,
                continue;
             // Is it a directory?
             if(S_ISDIR(st.st_mode)) {
-               // Put it at the end of the list
-               recurse.push_back(buff);
+               // Put it at the front of the list
+               // Doing depth first to limit memory usage
+               recurse.push_front(buff);
             // Is it regular file?
             } else if(S_ISREG(st.st_mode)) {
                if(file_test(buff.c_str()))
