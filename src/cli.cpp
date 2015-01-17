@@ -8,6 +8,8 @@
 #include <string>
 #include <string.h>
 #include <stdlib.h>
+#include <iostream>
+#include <cxxtools/jsonserializer.h>
 
 #include "helper.hpp"
 #include "structures.hpp"
@@ -107,6 +109,20 @@ int main(int argc, char **argv) {
          optind++;
          for(auto f : File::latest(limit, storage))
             display_file(f);
+      }
+      if(optind < argc && strcmp(argv[optind],"export")==0) {
+         optind++;
+         cxxtools::SerializationInfo si;
+         File::for_all([&si](File f) {
+                           cxxtools::SerializationInfo& nsi = si.addMember("");
+                           nsi <<= f;
+                       }, storage);
+         si.setTypeName("set");
+         si.setCategory(cxxtools::SerializationInfo::Array);
+         cxxtools::JsonSerializer json(std::cout);
+         json.beautify(true);   // this makes it just nice to read
+         json.serialize(si);
+         json.finish();
       }
       if(optind < argc && strcmp(argv[optind],"search")==0) {
          optind++;

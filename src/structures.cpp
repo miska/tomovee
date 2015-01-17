@@ -28,8 +28,11 @@ void File::update_meta(const char* file) {
 }
 
 //! Update last checked time
-void Path::touch() {
-   checked = time(NULL);
+void Path::touch(time_t when) {
+   if(when == 0)
+      checked = time(NULL);
+   else
+      checked = when;
    tntdb::Connection conn = tntdb::connectCached(db_url);
    auto smt = conn.prepareCached("UPDATE paths SET checked = :checked "
                                  "WHERE id = :id");
@@ -191,8 +194,7 @@ void File::load_paths() {
    }
 }
 
-#define _FILE_QUERY_P_(QUERY_WHERE, QUERY_SET) \
-   std::vector<File> ret; \
+#define _FILE_QUERY_P_(QUERY_WHERE, QUERY_SET, QUERY_ACTION) \
    tntdb::Connection conn = tntdb::connectCached(db_url); \
    tntdb::Statement smt; \
    if(storage.empty()) { \
@@ -201,8 +203,7 @@ void File::load_paths() {
                                "width, height, length " \
                                "FROM files, paths WHERE " \
                                "paths.file_id = files.id " \
-                               QUERY_WHERE \
-                               " LIMIT :many"); \
+                               QUERY_WHERE); \
       smt.QUERY_SET; \
    } else { \
       smt = conn.prepareCached("SELECT files.id, osdbhash, mhash, size, added, " \
@@ -211,12 +212,11 @@ void File::load_paths() {
                                "FROM files, paths WHERE " \
                                "paths.file_id = files.id AND " \
                                "paths.storage = :st " \
-                               QUERY_WHERE \
-                               " LIMIT :many"); \
+                               QUERY_WHERE); \
       smt.set("st", storage).QUERY_SET; \
    } \
    for(auto row: smt) { \
-      ret.push_back(File(row.getUnsigned32("id"), \
+      QUERY_ACTION(File(row.getUnsigned32("id"), \
                          row.getUnsigned32("mhash"), \
                          row.getUnsigned64("osdbhash"), \
                          row.getUnsigned64("size"), \
@@ -228,13 +228,16 @@ void File::load_paths() {
                          row.getInt("length") \
                         )); \
    } \
-   return ret;
 
 #define FILE_QUERY(QUERY_WHERE, QUERY_SET) \
-   _FILE_QUERY_P_("AND " QUERY_WHERE, set("many", how_many).QUERY_SET)
+   std::vector<File> ret; \
+   _FILE_QUERY_P_("AND " QUERY_WHERE " LIMIT :many ", set("many", how_many).QUERY_SET, ret.push_back) \
+   return ret;
 
 #define FILE_QUERY_SIMPLE(QUERY_WHERE) \
-   _FILE_QUERY_P_(QUERY_WHERE, set("many", how_many))
+   std::vector<File> ret; \
+   _FILE_QUERY_P_(QUERY_WHERE " LIMIT :many ", set("many", how_many), ret.push_back) \
+   return ret;
 
 std::vector<File> File::search(std::string pattern, int how_many, std::string storage) {
    pattern = "%" + pattern + "%";
@@ -243,6 +246,10 @@ std::vector<File> File::search(std::string pattern, int how_many, std::string st
 
 std::vector<File> File::latest(int how_many, std::string storage) {
    FILE_QUERY_SIMPLE("ORDER BY added DESC")
+}
+
+void File::for_all(std::function<void(File)> f, std::string storage) {
+   _FILE_QUERY_P_("", set("st", storage), f)
 }
 
 Movie::Movie(std::string imdb_id) {
@@ -262,4 +269,26 @@ Movie::Movie(std::string imdb_id) {
    row = smt.set("imdb", imdb_id).selectRow();
 
    row[0].get(db_id);
+}
+
+void operator>>=(cxxtools::SerializationInfo&, Path&) {
+}
+void operator<<=(cxxtools::SerializationInfo& si, const Path& c) {
+   si.addMember("storage") <<= c.get_storage();
+   si.addMember("path")    <<= c.get_path();
+}
+void operator>>=(cxxtools::SerializationInfo&, File&) {
+}
+void operator<<=(cxxtools::SerializationInfo& si, const File& b) {
+   File c(b);
+   si.addMember("size")      <<= c.get_size();
+   si.addMember("width")     <<= c.get_width();
+   si.addMember("height")    <<= c.get_height();
+   si.addMember("length")    <<= c.get_length();
+   si.addMember("added")     <<= c.get_added();
+   si.addMember("osdb")      <<= c.get_osdb_hash();
+   si.addMember("mhash")     <<= c.get_mhash();
+   si.addMember("audios")    <<= c.get_audios();
+   si.addMember("subtitles") <<= c.get_subtitles();
+   si.addMember("paths")     <<= c.get_paths();
 }

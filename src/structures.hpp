@@ -8,6 +8,8 @@
 #include <vector>
 #include <string>
 #include <time.h>
+#include <functional>
+#include <cxxtools/serializationinfo.h>
 
 using namespace std;
 
@@ -22,6 +24,7 @@ class File;
 //! Basic class to represent a path
 class Path {
 friend class File;
+friend void operator>>=(cxxtools::SerializationInfo& si, Path& c);
 private:
    //! ID in the database
    uint64_t db_id;
@@ -35,8 +38,11 @@ protected:
    //! Constructor
    Path(const string& st, const string& pth, uint64_t parent);
 public:
-   string get_storage() { return storage; }
-   string get_path() { return path; }
+   //! Returns storage name
+   string get_storage() const { return storage; }
+   //! Returns path inside the storage
+   string get_path() const { return path; }
+   time_t get_checked() const { return checked; }
    //! Constructor from database
    Path(uint64_t id, const string& st, const string& pth, time_t checked):
                              db_id(id),
@@ -63,7 +69,7 @@ public:
    //! Delete path from database
    void remove();
    //! Update last checked time
-   void touch();
+   void touch(time_t when = 0);
    //! Clean all files not checked since
    static void cleanup(time_t older, std::string storage);
 };
@@ -104,10 +110,13 @@ protected:
    void load_paths();
 public:
    //! Get time when file was added
-   time_t get_added() { return added;  }
-   int get_width()    { return width;  }
-   int get_height()   { return height; }
-   int get_length()   { return length; }
+   time_t get_added() const          { return added;  }
+   int get_width() const             { return width;  }
+   int get_height() const            { return height; }
+   int get_length() const            { return length; }
+   uint32_t get_mhash() const        { return mhash; }
+   std::string get_audios() const    { return audios; }
+   std::string get_subtitles() const { return subtitles; }
    //! Update hash and filesize
    void update_info(const char* file, bool use_mtime = false);
    //! Update movie meta data like resolution, streams and length
@@ -162,6 +171,8 @@ public:
    static std::vector<File> latest(int how_many = 100, std::string = "");
    //! Get files/movies matching the pattern
    static std::vector<File> search(string pattern, int how_many = 100, std::string = "");
+   static void for_all(std::function<void(File)> f, std::string storage = "");
+   friend void operator>>=(cxxtools::SerializationInfo& si, File& c);
 };
 
 class Movie {
@@ -171,5 +182,15 @@ public:
    Movie(std::string imdb_id);
    uint64_t get_id() { return db_id; }
 };
+
+
+//! Path de-serialization
+void operator>>=(cxxtools::SerializationInfo& si, Path& c);
+//! Path serialization
+void operator<<=(cxxtools::SerializationInfo& si, const Path& c);
+//! File de-serialization
+void operator>>=(cxxtools::SerializationInfo& si, File& c);
+//! File serialization
+void operator<<=(cxxtools::SerializationInfo& si, const File& c);
 
 #endif // STRUCTURES_HPP
