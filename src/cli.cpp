@@ -10,6 +10,7 @@
 #include <stdlib.h>
 #include <iostream>
 #include <cxxtools/jsonserializer.h>
+#include <cxxtools/jsondeserializer.h>
 
 #include "helper.hpp"
 #include "structures.hpp"
@@ -18,7 +19,7 @@ using namespace std;
 
 bool first = true;
 
-void display_file(File &f) {
+void display_file(const File f) {
    static char buff[1024];
    time_t tmp = f.get_added();
    strftime(buff, sizeof(buff), "%F %T", localtime(&tmp));
@@ -78,7 +79,6 @@ int main(int argc, char **argv) {
    } else {
       db_url = getenv("TOMOVEE_DB");
    }
-   init_db();
 
    int last_optind;
    while(optind < argc) {
@@ -107,22 +107,61 @@ int main(int argc, char **argv) {
       }
       if(optind < argc && strcmp(argv[optind],"new")==0) {
          optind++;
-         for(auto f : File::latest(limit, storage))
-            display_file(f);
+         if(storage.empty()) {
+            File::for_each(
+               [](File f) { display_file(f); },
+               "1 = 1 ORDER BY added DESC LIMIT :limit",
+               [&limit](tntdb::Statement& st) { 
+                   st.set("limit", limit); });
+         } else {
+            File::for_each(
+               [](File f) { display_file(f); },
+               "id IN (SELECT file_id FROM paths where storage = :st) "
+               "ORDER BY added DESC LIMIT :limit",
+               [&storage, &limit] (tntdb::Statement& st) {
+                   st.set("st", storage).
+                      set("limit", limit); });
+         }
       }
       if(optind < argc && strcmp(argv[optind],"export")==0) {
          optind++;
          cxxtools::SerializationInfo si;
-         File::for_all([&si](File f) {
-                           cxxtools::SerializationInfo& nsi = si.addMember("");
-                           nsi <<= f;
-                       }, storage);
-         si.setTypeName("set");
-         si.setCategory(cxxtools::SerializationInfo::Array);
          cxxtools::JsonSerializer json(std::cout);
+
+         cxxtools::SerializationInfo& fsi = si.addMember("files");
+         File::for_each([&fsi](File f) {
+                           cxxtools::SerializationInfo& nsi = fsi.addMember("");
+                           f.serialize(nsi);
+                       }, " movie_id = 0 ");
+         fsi.setTypeName("set");
+         fsi.setCategory(cxxtools::SerializationInfo::Array);
+
+         cxxtools::SerializationInfo& msi = si.addMember("movies");
+         Movie::for_each([&msi](Movie m) {
+                           cxxtools::SerializationInfo& nsi = msi.addMember("");
+                           m.serialize(nsi);
+                       });
+         msi.setTypeName("set");
+         msi.setCategory(cxxtools::SerializationInfo::Array);
+
          json.beautify(true);   // this makes it just nice to read
          json.serialize(si);
          json.finish();
+      }
+      if(optind < argc && strcmp(argv[optind],"import")==0) {
+         init_db();
+         optind++;
+         cxxtools::JsonDeserializer json(std::cin);
+         json.deserialize();
+         cxxtools::SerializationInfo* jsi = json.si();
+
+         auto fsi = jsi->getMember("files");
+         for(auto it : fsi)
+            File::deserialize(it);
+
+         auto msi = jsi->getMember("movies");
+         for(auto it : msi)
+            Movie::deserialize(it);
       }
       if(optind < argc && strcmp(argv[optind],"search")==0) {
          optind++;
@@ -130,8 +169,18 @@ int main(int argc, char **argv) {
             print_help(argv[0]);
             exit(1);
          }
-         for(auto f : File::search(argv[optind], limit, storage))
-            display_file(f);
+         std::string where = "path LIKE :name ";
+         if(!storage.empty())
+            where += " AND storage = :st ";
+         if(limit > 0)
+            where += " LIMIT :limit";
+         Path::for_each(
+            [](Path p) { display_file(p.get_parent_file()); },
+            where,
+            [&argv, &storage, &limit, &optind] (tntdb::Statement& st) {
+                st.set("name", std::string(argv[optind])).
+                   set("st", storage).
+                   set("limit", limit); });
          optind++;
       }
       if(optind < argc && strcmp(argv[optind],"help")==0) {

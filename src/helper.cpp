@@ -22,6 +22,9 @@
 #include <tntdb/row.h>
 
 #include "helper.hpp"
+#include "path.hpp"
+#include "movie.hpp"
+#include "file.hpp"
 #include "sql_init.h"
 
 std::string db_url;
@@ -63,8 +66,9 @@ void compute_hash(uint64_t& osdb_hash, uint32_t& m_hash, FILE * handle) {
 }
 
 void init_db() {
-   tntdb::Connection conn = tntdb::connectCached(db_url);
-   conn.execute(SQL_INIT);
+   File::db_init();
+   Path::db_init();
+   Movie::db_init();
 }
 
 bool is_video(const char *file) {
@@ -195,7 +199,7 @@ std::string imdb_from_nfo(const char* cfile) {
    return ret;
 }
 
-void get_movie_info(const char* file, int& length, int& width, int& height,
+void get_movie_info(const char* file, int32_t& length, int32_t& width, int32_t& height,
                     std::string& audio, std::string& srt) {
    int p[2];
    pid_t f;

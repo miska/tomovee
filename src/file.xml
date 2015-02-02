@@ -1,0 +1,32 @@
+<class
+    name = "File"
+    title = "File abstraction class"
+    script = "zxdb_cpp"
+    package_dir = "."
+    >
+
+<property name="size"      type="number" size="8"
+>Size of the file</property>
+<property name="mhash"     type="number" size="4" signed="no"
+>Hash from the middle of the movie</property>
+<property name="osdbhash"  type="number" size="8" signed="no"
+>Hash used by OpenSubtitles</property>
+<property name="added"     type="number" size="8" signed="no" default="time(NULL)"
+>Time when the file was added</property>
+<property name="audios"    type="string" default="&quot;&quot;"
+>Comma separated list of audio tracks</property>
+<property name="subtitles" type="string" default="&quot;&quot;"
+>Comma separated list of subtitle tracks</property>
+<property name="width"     type="number" size="4" signed="no" default="0"
+>Movie width</property>
+<property name="height"    type="number" size="4" signed="no" default="0"
+>Movie height</property>
+<property name="length"    type="number" size="4" signed="no" default="0"
+>Movie length in seconds</property>
+<property name="movie_assigned_by" type="number" size="2" signed="no" default="0"
+>How did we get the link to the movie</property>
+
+<has_many   name="path">Paths on which this file can e found</has_many>
+<belongs_to name="movie">Movie this file contains</belongs_to>
+
+</class>

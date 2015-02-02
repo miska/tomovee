@@ -1,0 +1,14 @@
+<class
+    name = "Path"
+    title = "Path abstraction class"
+    script = "zxdb_cpp"
+    package_dir = "."
+    >
+
+<property name="storage" type="string">What storage</property>
+<property name="path"    type="string">Relative path inside the storage</property>
+<property name="checked" type="number" size="8" default="0" signed="no">When was the last time we saw this file here</property>
+
+<belongs_to name="file">File this path belongs to</belongs_to>
+
+</class>

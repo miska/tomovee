@@ -42,7 +42,7 @@ void init_db();
 
 std::string imdb_from_nfo(const char* file);
 
-void get_movie_info(const char* file, int& length, int& width, int& height,
+void get_movie_info(const char* file, int32_t& length, int32_t& width, int32_t& height,
                     std::string& audio, std::string& srt);
 
 #endif // HELPER_HPP

@@ -132,6 +132,7 @@ int main(int argc, char **argv) {
    } else {
       db_url = getenv("TOMOVEE_DB");
    }
+
    init_db();
 
    printf("Scanning directory '%s' in storage '%s'\n", argv[argc-1], storage.c_str());
@@ -144,7 +145,7 @@ int main(int argc, char **argv) {
    for(auto i:include)
    find(i.c_str(),
         [&](const char* name) {
-           auto f = File(name + 2, storage, mtime);
+           auto f = create_file(storage.c_str(), name + 2, mtime);
            if(verbose) {
               if(!mtime) {
               if(time(NULL) - f.get_added() > 1) {
@@ -163,7 +164,10 @@ int main(int argc, char **argv) {
            if(verbose && !i.empty()) {
               printf("Got IMDB ID '%s' from NFO file.\n", i.c_str());
               auto m = Movie(i);
-              f.set_movie(AUTO_NFO, m.get_id());
+              m.save();
+              f.set_movie_assigned_by(AUTO_NFO);
+              f.set_parent_movie(m);
+              f.save();
            }
         },
         [](const char* name) -> bool { return is_video(name); },
@@ -180,8 +184,8 @@ int main(int argc, char **argv) {
            [](const char* name) -> bool { return should_scan(name); }
        );
    if(del) {
-      Path::cleanup(del_ts, storage);
+/*      Path::remove("checked < :ts AND storage = :st", del_ts, storage);
       if(del_all)
-         File::cleanup();
+         File::cleanup(); */
    }
 }

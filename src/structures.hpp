@@ -11,6 +11,10 @@
 #include <functional>
 #include <cxxtools/serializationinfo.h>
 
+#include "path.hpp"
+#include "file.hpp"
+#include "movie.hpp"
+
 using namespace std;
 
 enum movie_assigned {
@@ -19,178 +23,16 @@ enum movie_assigned {
    AUTO_NFO,
 };
 
-class File;
+//! Update last checked time
+void touch_path(Path& what, time_t when = 0);
 
-//! Basic class to represent a path
-class Path {
-friend class File;
-friend void operator>>=(cxxtools::SerializationInfo& si, Path& c);
-private:
-   //! ID in the database
-   uint64_t db_id;
-   //! On which storage is this path
-   string storage;
-   //! Path relative to the root of the storage
-   string path;
-   //! Last time changed
-   time_t checked;
-protected:
-   //! Constructor
-   Path(const string& st, const string& pth, uint64_t parent);
-public:
-   //! Returns storage name
-   string get_storage() const { return storage; }
-   //! Returns path inside the storage
-   string get_path() const { return path; }
-   time_t get_checked() const { return checked; }
-   //! Constructor from database
-   Path(uint64_t id, const string& st, const string& pth, time_t checked):
-                             db_id(id),
-                             storage(st),
-                             path(pth),
-                             checked(checked) {}
-   //! Copy constructor
-   Path(const Path& other):  db_id(other.db_id),
-                             storage(other.storage),
-                             path(other.path),
-                             checked(other.checked) {}
+//! Create File class from file
+File create_file(const char* storage, const char* file, bool use_mtime = false);
 
-   //! Move constructor
-   Path(const Path&& other): db_id(other.db_id),
-                             storage(move(other.storage)),
-                             path(move(other.path)),
-                             checked(other.checked) {}
-   //! Assignment operator
-   Path& operator=(const Path& other);
-   //! Comparison operator
-   bool operator==(const Path& other) const;
-   //! Comparison operator
-   bool operator!=(const Path& other) { return (!((*this) == other)); }
-   //! Delete path from database
-   void remove();
-   //! Update last checked time
-   void touch(time_t when = 0);
-   //! Clean all files not checked since
-   static void cleanup(time_t older, std::string storage);
-};
+//! Update hash and filesize
+void update_file_info(File& target, const char* file, bool use_mtime = false);
 
-//! Basic class to represent a file
-class File {
-   //! ID in the database
-   uint64_t db_id;
-   //! Just to be sure, checksum from the middle of the file
-   uint32_t mhash;
-   //! File Open Subtitles DataBase hash
-   uint64_t osdbhash;
-   //! File size
-   uint64_t size;
-   //! Where can we find a file
-   vector<Path> paths;
-   //! When was file added into database
-   time_t added;
-   std::string audios;
-   std::string subtitles;
-   int width, height, length;
-
-protected:
-   //! Constructor used when loading from database
-   File(uint32_t id, uint32_t mhash, uint64_t osdbhash, uint64_t size,
-        time_t added, string audios, string subtitles, int width, int height,
-        int length):
-                             db_id(id),
-                             mhash(mhash),
-                             osdbhash(osdbhash),
-                             size(size),
-                             added(added),
-                             audios(audios),
-                             subtitles(subtitles),
-                             width(width),
-                             height(height),
-                             length(length) {}
-   void load_paths();
-public:
-   //! Get time when file was added
-   time_t get_added() const          { return added;  }
-   int get_width() const             { return width;  }
-   int get_height() const            { return height; }
-   int get_length() const            { return length; }
-   uint32_t get_mhash() const        { return mhash; }
-   std::string get_audios() const    { return audios; }
-   std::string get_subtitles() const { return subtitles; }
-   //! Update hash and filesize
-   void update_info(const char* file, bool use_mtime = false);
-   //! Update movie meta data like resolution, streams and length
-   void update_meta(const char* file);
-   //! Constructor from file
-   File(const char* file, const string& storage, bool use_mtime = false);
-   //! Copy constructor
-   File(const File& other):  db_id(other.db_id),
-                             mhash(other.mhash),
-                             osdbhash(other.osdbhash),
-                             size(other.size),
-                             paths(other.paths),
-                             added(other.added),
-                             audios(other.audios),
-                             subtitles(other.subtitles),
-                             width(other.width),
-                             height(other.height),
-                             length(other.length) {}
-   //! Move constructor
-   File(const File&& other): db_id(other.db_id),
-                             mhash(other.mhash),
-                             osdbhash(move(other.osdbhash)),
-                             size(move(other.size)),
-                             paths(move(other.paths)),
-                             added(other.added),
-                             audios(move(other.audios)),
-                             subtitles(move(other.subtitles)),
-                             width(other.width),
-                             height(other.height),
-                             length(other.length) {}
-
-   const vector<Path>& get_paths() { if(paths.empty())
-                                        load_paths();
-                                     return paths;
-                                   }
-
-   //! Check whether files look same
-   bool looks_same(const File& other) const {
-      return ((mhash == other.mhash) && (osdbhash == other.osdbhash) &&
-              (size == other.size));
-   }
-
-   //! Return hash for Open Subtitle DataBase
-   uint64_t get_osdb_hash() { return osdbhash; }
-   //! Return size of the file
-   uint64_t get_size() { return size; }
-   //! Set movie this file belongs to
-   void set_movie(movie_assigned type, uint64_t movie_id);
-   //! Clean files that we do not have in any storage
-   static void cleanup();
-   //! Get newest files/movies
-   static std::vector<File> latest(int how_many = 100, std::string = "");
-   //! Get files/movies matching the pattern
-   static std::vector<File> search(string pattern, int how_many = 100, std::string = "");
-   static void for_all(std::function<void(File)> f, std::string storage = "");
-   friend void operator>>=(cxxtools::SerializationInfo& si, File& c);
-};
-
-class Movie {
-   uint64_t db_id;
-public:
-   std::string imdb_id;
-   Movie(std::string imdb_id);
-   uint64_t get_id() { return db_id; }
-};
-
-
-//! Path de-serialization
-void operator>>=(cxxtools::SerializationInfo& si, Path& c);
-//! Path serialization
-void operator<<=(cxxtools::SerializationInfo& si, const Path& c);
-//! File de-serialization
-void operator>>=(cxxtools::SerializationInfo& si, File& c);
-//! File serialization
-void operator<<=(cxxtools::SerializationInfo& si, const File& c);
+//! Update movie meta data like resolution, streams and length
+void update_file_meta(File& target, const char* file);
 
 #endif // STRUCTURES_HPP

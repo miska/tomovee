@@ -1,0 +1,17 @@
+<class
+    name = "Movie"
+    title = "Movie abstraction class"
+    script = "zxdb_cpp"
+    package_dir = "."
+    >
+
+<property name="imdb_id"  type="string"
+>ID of this movie on IMDB</property>
+<property name="en_name"  type="string" default="&quot;&quot;"
+>English name of the movie</property>
+<property name="name"     type="string" default="&quot;&quot;"
+>Native name of the movie</property>
+
+<has_many   name="file">Files containing this movie</has_many>
+
+</class>

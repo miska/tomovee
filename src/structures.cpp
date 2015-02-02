@@ -10,102 +10,91 @@
 #include <sys/stat.h>
 #include <unistd.h>
 
-void File::update_meta(const char* file) {
-   if((length > 0) && (width > 0) && (height > 0))
+//! Update movie meta data like resolution, streams and length
+void update_file_meta(File& target, const char* file) {
+   if((target.get_length() > 0) && (target.get_width() > 0) && (target.get_height() > 0))
       return;
    std::string a,s;
-   get_movie_info(file, length, width, height, a, s);
-   if(audios.empty())
-      audios = a;
-   if(subtitles.empty())
-      subtitles = s;
-   tntdb::Connection conn = tntdb::connectCached(db_url);
-   auto smt = conn.prepareCached("UPDATE files SET audios = :audio, "
-                                 "subtitles = :sub, width = :w, height = :h, "
-                                 "length = :l WHERE id = :id");
-   smt.set("audio", audios).set("sub", subtitles).set("w", width).
-       set("h", height).set("l", length).set("id", db_id).execute();
+   int32_t l,w,h;
+   get_movie_info(file, l, w, h, a, s);
+   if(target.get_audios().empty())
+      target.set_audios(a);
+   if(target.get_subtitles().empty())
+      target.set_subtitles(s);
+   target.set_length(l);
+   target.set_width(w);
+   target.set_height(h);
 }
 
 //! Update last checked time
-void Path::touch(time_t when) {
+void touch_path(Path& what,time_t when) {
+   uint64_t checked;
    if(when == 0)
       checked = time(NULL);
    else
       checked = when;
-   tntdb::Connection conn = tntdb::connectCached(db_url);
-   auto smt = conn.prepareCached("UPDATE paths SET checked = :checked "
-                                 "WHERE id = :id");
-   smt.set("checked", checked).set("id", db_id).execute();
+
+   what.set_checked(max(checked,what.get_checked()));
 }
 
-Path::Path(const string& st, const string& pth, uint64_t parent) {
-   { // Database operations block start
-
-   tntdb::Connection conn = tntdb::connectCached(db_url);
-   tntdb::Statement smt;
-   tntdb::Row row;
-
-   // Add into database if doesn't exists
-   smt = conn.prepareCached("INSERT INTO paths (storage, path, file_id) "
-                            "SELECT :storage, :path, :parent WHERE 1 NOT IN "
-                            "(SELECT 1 FROM paths WHERE "
-                            "storage = :storage AND path = :path AND "
-                            "file_id = :parent LIMIT 1)");
-   smt.set("storage", st).set("path", pth).set("parent", parent).execute();
-
-   // Get ID from the database
-   smt = conn.prepareCached("SELECT id FROM paths WHERE "
-                            "storage = :storage AND path = :path AND "
-                            "file_id = :parent LIMIT 1");
-   row = smt.set("storage", st).set("path", pth).set("parent", parent).
-         set("parent", parent).selectRow();
-   row[0].get(db_id);
-
-   } // Destroy everything database related, SQLite can handle only one
-     // connection at the time, so we have to release it before running
-     // touch at the end of constructor
-
-   storage = st;
-   path = pth;
-   touch();
-}
-
-Path& Path::operator=(const Path& other) {
-   storage = other.storage;
-   path = other.path;
-   db_id = other.db_id;
-   checked = other.checked;
-   return *this;
-}
-
-bool Path::operator==(const Path& b) const {
-   return ((storage == b.storage) && (path == b.path));
-}
-
-File::File(const char* file, const string& storage, bool use_mtime) {
-   added = time(NULL);
-   length = -1;
-   width = -1;
-   height = -1;
-   update_info(file, use_mtime);
-   paths.push_back(Path(storage, file, db_id));
-}
-
-void File::update_info(const char* file, bool use_mtime) {
+//! Create File class from file
+File create_file(const char* storage, const char* file, bool use_mtime) {
    FILE* fl;
 
    // Set size
-   if((fl = fopen(file,"r")) == NULL) return;
+   uint64_t size;
+   if((fl = fopen(file,"r")) == NULL)
+      throw std::runtime_error("Can't open the file");
    fseek(fl, 0, SEEK_END);
    size = ftell(fl);
 
    // Calculate hashes
+   uint64_t osdbhash;
+   uint32_t mhash;
    compute_hash(osdbhash, mhash, fl);
    fclose(fl);
 
+   // Get/create a file
+   auto search_fl = File::search(
+      "osdbhash = :osdb AND mhash = :mhash and size = :size",
+      [&osdbhash, &mhash, &size](tntdb::Statement& st) {
+         st.set("osdb", osdbhash);
+         st.set("mhash", mhash);
+         st.set("size", size);
+      }
+   );
+   if(search_fl.empty()) {
+      search_fl.push_back(File(size, mhash, osdbhash));
+   }
+
+   // Get/create a path
+   {
+   auto search_pt = Path::search(
+      "storage = :st AND path = :pt",
+      [&storage, &file](tntdb::Statement& st) {
+         st.set("st", storage);
+         st.set("pt", file);
+      }
+   );
+   if(search_pt.empty()) {
+      Path pt(storage, file);
+      pt.set_parent_file(search_fl[0]);
+   } else {
+      touch_path(search_pt[0]);
+      search_pt[0].set_parent_file(search_fl[0]);
+   }
+   }
+
+   // Update info
+   update_file_info(search_fl[0], file, use_mtime);
+   return search_fl[0];
+}
+
+//! Update hash and filesize
+void update_file_info(File& target, const char* file, bool use_mtime) {
+
    // Set time
-   added = 0;
+   uint64_t added = 0;
    if(use_mtime) {
       struct stat st;
       if(stat(file, &st) == 0) {
@@ -115,180 +104,9 @@ void File::update_info(const char* file, bool use_mtime) {
    if(added == 0) {
       added = time(NULL);
    }
+   target.set_added(min(target.get_added(),added));
+   if(target.get_added() == 0)
+      target.set_added(added);
 
-   { // Database scope
-   // Try whether we already have a file like that
-   tntdb::Connection conn = tntdb::connectCached(db_url);
-   tntdb::Statement smt;
-   tntdb::Row row;
-
-   // Add into database if doesn't exists
-   smt = conn.prepareCached("INSERT INTO files (mhash, osdbhash, size, "
-                            "added, movie_id, assigned_by) SELECT :m, :osdb, "
-                            ":size, :added, 0, :ass WHERE 1 NOT IN "
-                            "(SELECT 1 FROM  files WHERE "
-                            "mhash = :m AND osdbhash = :osdb AND "
-                            "size = :size LIMIT 1)");
-   smt.set("m", mhash).set("osdb", osdbhash).set("size", size).
-       set("added", added).set("ass", NOT_ASSIGNED).execute();
-
-   // Get some data from the database
-   smt = conn.prepareCached("SELECT id, added, audios, subtitles, length, "
-                            "width, height FROM files "
-                            "WHERE "
-                            "mhash = :m AND osdbhash = :osdb AND "
-                            "size = :size LIMIT 1");
-   row = smt.set("m", mhash).set("osdb", osdbhash).set("size", size).
-         selectRow();
-
-   row[0].get(db_id);
-   time_t db_added;
-   row[1].get(db_added);
-   if(added < db_added) {
-      smt = conn.prepareCached("UPDATE files SET added = :added WHERE id = :id");
-      smt.set("added", added).set("id", db_id).execute();
-   } else {
-      added = db_added;
-   }
-   row[2].get(audios);
-   row[3].get(subtitles);
-   row[4].get(length);
-   row[5].get(width);
-   row[6].get(height);
-   } // End of database scope
-   update_meta(file);
-}
-
-void File::cleanup() {
-   tntdb::Connection conn = tntdb::connectCached(db_url);
-   auto smt = conn.prepareCached("DELETE FROM files WHERE id NOT IN "
-                            "(SELECT file_id FROM paths)");
-   smt.execute();
-}
-
-void File::set_movie(movie_assigned type, uint64_t movie_id) {
-   tntdb::Connection conn = tntdb::connectCached(db_url);
-   auto smt = conn.prepareCached("UPDATE files SET movie_id = :mov, "
-                                 "assigned_by = :ass WHERE id = :id");
-   smt.set("ass", type).set("mov", movie_id).set("id", db_id).execute();
-}
-
-void Path::cleanup(time_t older, std::string storage) {
-   tntdb::Connection conn = tntdb::connectCached(db_url);
-   auto smt = conn.prepareCached("DELETE FROM paths WHERE checked < :ts AND "
-                                                         "storage = :st");
-   smt.set("ts", older).set("st", storage).execute();
-}
-
-void File::load_paths() {
-   tntdb::Connection conn = tntdb::connectCached(db_url);
-   tntdb::Statement smt;
-   smt = conn.prepareCached("SELECT id, storage, path, checked "
-                            "FROM paths WHERE file_id = :id");
-   smt.set("id", db_id);
-   for(auto row: smt) {
-      paths.push_back(Path(row.getUnsigned64("id"),
-                           row.getString("storage"),
-                           row.getString("path"),
-                           row.getUnsigned64("checked")));
-   }
-}
-
-#define _FILE_QUERY_P_(QUERY_WHERE, QUERY_SET, QUERY_ACTION) \
-   tntdb::Connection conn = tntdb::connectCached(db_url); \
-   tntdb::Statement smt; \
-   if(storage.empty()) { \
-      smt = conn.prepareCached("SELECT files.id, osdbhash, mhash, size, added, " \
-                               "movie_id, assigned_by, audios, subtitles, " \
-                               "width, height, length " \
-                               "FROM files, paths WHERE " \
-                               "paths.file_id = files.id " \
-                               QUERY_WHERE); \
-      smt.QUERY_SET; \
-   } else { \
-      smt = conn.prepareCached("SELECT files.id, osdbhash, mhash, size, added, " \
-                               "movie_id, assigned_by, audios, subtitles, " \
-                               "width, height, length " \
-                               "FROM files, paths WHERE " \
-                               "paths.file_id = files.id AND " \
-                               "paths.storage = :st " \
-                               QUERY_WHERE); \
-      smt.set("st", storage).QUERY_SET; \
-   } \
-   for(auto row: smt) { \
-      QUERY_ACTION(File(row.getUnsigned32("id"), \
-                         row.getUnsigned32("mhash"), \
-                         row.getUnsigned64("osdbhash"), \
-                         row.getUnsigned64("size"), \
-                         row.getUnsigned64("added"), \
-                         row.getString("audios"), \
-                         row.getString("subtitles"), \
-                         row.getInt("width"), \
-                         row.getInt("height"), \
-                         row.getInt("length") \
-                        )); \
-   } \
-
-#define FILE_QUERY(QUERY_WHERE, QUERY_SET) \
-   std::vector<File> ret; \
-   _FILE_QUERY_P_("AND " QUERY_WHERE " LIMIT :many ", set("many", how_many).QUERY_SET, ret.push_back) \
-   return ret;
-
-#define FILE_QUERY_SIMPLE(QUERY_WHERE) \
-   std::vector<File> ret; \
-   _FILE_QUERY_P_(QUERY_WHERE " LIMIT :many ", set("many", how_many), ret.push_back) \
-   return ret;
-
-std::vector<File> File::search(std::string pattern, int how_many, std::string storage) {
-   pattern = "%" + pattern + "%";
-   FILE_QUERY("paths.path LIKE :pat", set("pat", pattern))
-}
-
-std::vector<File> File::latest(int how_many, std::string storage) {
-   FILE_QUERY_SIMPLE("ORDER BY added DESC")
-}
-
-void File::for_all(std::function<void(File)> f, std::string storage) {
-   _FILE_QUERY_P_("", set("st", storage), f)
-}
-
-Movie::Movie(std::string imdb_id) {
-   // Try whether we already have a movie like that
-   tntdb::Connection conn = tntdb::connectCached(db_url);
-   tntdb::Statement smt;
-   tntdb::Row row;
-
-   // Add into database if doesn't exists
-   smt = conn.prepareCached("INSERT INTO movies (imdb_id) SELECT :imdb "
-                            "WHERE 1 NOT IN (SELECT 1 FROM movies WHERE "
-                            "imdb_id = :imdb LIMIT 1)");
-   smt.set("imdb", imdb_id).execute();
-
-   // Get ID from the database
-   smt = conn.prepareCached("SELECT id FROM movies WHERE imdb_id = :imdb LIMIT 1");
-   row = smt.set("imdb", imdb_id).selectRow();
-
-   row[0].get(db_id);
-}
-
-void operator>>=(cxxtools::SerializationInfo&, Path&) {
-}
-void operator<<=(cxxtools::SerializationInfo& si, const Path& c) {
-   si.addMember("storage") <<= c.get_storage();
-   si.addMember("path")    <<= c.get_path();
-}
-void operator>>=(cxxtools::SerializationInfo&, File&) {
-}
-void operator<<=(cxxtools::SerializationInfo& si, const File& b) {
-   File c(b);
-   si.addMember("size")      <<= c.get_size();
-   si.addMember("width")     <<= c.get_width();
-   si.addMember("height")    <<= c.get_height();
-   si.addMember("length")    <<= c.get_length();
-   si.addMember("added")     <<= c.get_added();
-   si.addMember("osdb")      <<= c.get_osdb_hash();
-   si.addMember("mhash")     <<= c.get_mhash();
-   si.addMember("audios")    <<= c.get_audios();
-   si.addMember("subtitles") <<= c.get_subtitles();
-   si.addMember("paths")     <<= c.get_paths();
+   update_file_meta(target, file);
 }

@@ -2,3 +2,5 @@
 
 #include "catch/catch.hpp"
 
+std::string db_url;
+

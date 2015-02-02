@@ -21,7 +21,7 @@ TEST_CASE( "File works", "[structures][file]" ) {
       // MD5 is read right
       CHECK(test_a.get_osdb_hash() == 0xdeae40ded8d8ca9f);
       // Time added is reasonable
-      CHECK((time(NULL) - test_a.get_added()) < 1);
+      CHECK((time(NULL) - test_a.get_added()) <= 1);
       // Not a video, following shouldn't work
       CHECK(test_a.get_length() == -1);
       CHECK(test_a.get_width()  == -1);
