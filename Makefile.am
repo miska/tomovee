@@ -7,8 +7,6 @@ lib_LTLIBRARIES = libtomovee.la
 libtomovee_la_LDFLAGS = -version-info 0:1:0
 libtomovee_la_SOURCES = src/helper.cpp src/structures.cpp src/path.cpp src/file.cpp src/movie.cpp
 
-src/helper.cpp: src/sql_init.h
-
 bin_PROGRAMS = tomovee_miner tomovee_cli
 
 tomovee_miner_SOURCES = src/miner.cpp

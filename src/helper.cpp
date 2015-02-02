@@ -25,7 +25,6 @@
 #include "path.hpp"
 #include "movie.hpp"
 #include "file.hpp"
-#include "sql_init.h"
 
 std::string db_url;
 
