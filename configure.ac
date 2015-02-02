@@ -62,6 +62,10 @@ AC_CHECK_HEADERS([tntdb/connection.h], [],
                  AC_MSG_ERROR([cannot find required header tntdb/connection.h]))
 AX_CXX_CHECK_LIB(tntdb, tntdb::dropCached(unsigned keep = 0), [],
                 AC_MSG_ERROR([cannot find required tntdb library]))
+AC_CHECK_HEADERS([cxxtools/jsonserializer.h], [],
+                 AC_MSG_ERROR([cannot find required header cxxtools/jsonserializer.h]))
+AC_CHECK_LIB(cxxtools, [main], [],
+                AC_MSG_ERROR([cannot find required cxxtools library]))
 AC_LANG_POP([C++])
 
 AC_CHECK_HEADERS([magic.h], [],
