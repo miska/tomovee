@@ -3,7 +3,9 @@ compiler:
   - gcc
 before_install:
   - sudo pip install cpp-coveralls
-  - sudo apt-get install libtntdb-dev tntdb-sqlite2 libmagic-dev libav-tools
+  - sudo add-apt-repository ppa:yavdr/main -y
+  - sudo apt-get update -y
+  - sudo apt-get install libcxxtools-dev libtntdb-dev tntdb-sqlite4 libmagic-dev libav-tools -y
 script:
   - ./autogen.sh && ./configure --enable-gcov --enable-tests && make test && make all
 after_success:
