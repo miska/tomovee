@@ -49,6 +49,8 @@ void print_help(const char* argv_0) {
    printf("Commands:\n");
    printf("   new               Show of new files/movies\n");
    printf("   search <pattern>  Search for <pattern> in the cached filenames\n");
+   printf("   export            Export database into json to stdout\n");
+   printf("   import            Import database into json from stdin\n");
    printf("   help              Show this help\n");
    printf("\n");
    free(dp);
