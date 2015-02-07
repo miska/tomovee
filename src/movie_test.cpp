@@ -152,7 +152,7 @@ TEST_CASE( "Movie works", "[movie]" ) {
     }
 
     SECTION("Check that setters works reliably") {
-		{
+        {
         Movie test_a(
             "a",
             "a",
@@ -161,7 +161,7 @@ TEST_CASE( "Movie works", "[movie]" ) {
         test_a.set_imdb_id("b");
         test_a.set_en_name("b");
         test_a.set_name("b");
-		}
+        }
         auto res = Movie::search(
             "imdb_id = :str AND "
             "en_name = :str AND "

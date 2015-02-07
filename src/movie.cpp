@@ -226,6 +226,7 @@ Movie::Movie(
         .set("en_name", en_name)
         .set("name", name)
         .selectRow();
+    db_id = 0;
     row[0].get(db_id);
 }
 

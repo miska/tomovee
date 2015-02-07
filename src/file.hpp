@@ -211,7 +211,7 @@ public:
             , length(other.length)
             , movie_assigned_by(other.movie_assigned_by)
             , movie_id(other.movie_id)
-			{}
+            {}
     //! Equality comparison
     virtual bool operator==(const File& other) const;
     //! Assignment operator

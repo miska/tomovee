@@ -465,7 +465,9 @@ File::File(
         .set("length", length)
         .set("movie_assigned_by", movie_assigned_by)
         .selectRow();
+    db_id = 0;
     row[0].get(db_id);
+    movie_id = 0;
     row[1].get(movie_id);
 }
 

@@ -264,7 +264,7 @@ TEST_CASE( "File works", "[file]" ) {
     }
 
     SECTION("Check that setters works reliably") {
-		{
+        {
         File test_a(
             1,
             1,
@@ -287,7 +287,7 @@ TEST_CASE( "File works", "[file]" ) {
         test_a.set_height(2);
         test_a.set_length(2);
         test_a.set_movie_assigned_by(2);
-		}
+        }
         auto res = File::search(
             "size = :num AND "
             "mhash = :num AND "

@@ -224,7 +224,9 @@ Path::Path(
         .set("path", path)
         .set("checked", checked)
         .selectRow();
+    db_id = 0;
     row[0].get(db_id);
+    file_id = 0;
     row[1].get(file_id);
 }
 

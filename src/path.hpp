@@ -129,7 +129,7 @@ public:
             , path(move(other.path))
             , checked(other.checked)
             , file_id(other.file_id)
-			{}
+            {}
     //! Equality comparison
     virtual bool operator==(const Path& other) const;
     //! Assignment operator

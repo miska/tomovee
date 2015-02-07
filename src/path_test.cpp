@@ -150,7 +150,7 @@ TEST_CASE( "Path works", "[path]" ) {
     }
 
     SECTION("Check that setters works reliably") {
-		{
+        {
         Path test_a(
             "a",
             "a",
@@ -159,7 +159,7 @@ TEST_CASE( "Path works", "[path]" ) {
         test_a.set_storage("b");
         test_a.set_path("b");
         test_a.set_checked(2);
-		}
+        }
         auto res = Path::search(
             "storage = :str AND "
             "path = :str AND "

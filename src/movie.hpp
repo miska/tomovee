@@ -119,7 +119,7 @@ public:
             , imdb_id(move(other.imdb_id))
             , en_name(move(other.en_name))
             , name(move(other.name))
-			{}
+            {}
     //! Equality comparison
     virtual bool operator==(const Movie& other) const;
     //! Assignment operator
