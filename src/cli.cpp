@@ -11,6 +11,7 @@
 #include <iostream>
 #include <cxxtools/jsonserializer.h>
 #include <cxxtools/jsondeserializer.h>
+#include <cxxtools/split.h>
 
 #include "helper.hpp"
 #include "structures.hpp"
@@ -51,6 +52,7 @@ void print_help(const char* argv_0) {
    printf("   search <pattern>  Search for <pattern> in the cached filenames\n");
    printf("   export            Export database into json to stdout\n");
    printf("   import            Import database into json from stdin\n");
+   printf("   diff +st1,-st2    Compares two storages\n");
    printf("   help              Show this help\n");
    printf("\n");
    free(dp);
@@ -164,6 +166,86 @@ int main(int argc, char **argv) {
          auto msi = jsi->getMember("movies");
          for(auto it : msi)
             Movie::deserialize(it);
+      }
+      if(optind < argc && strcmp(argv[optind],"diff")==0) {
+         optind++;
+         if(optind >= argc) {
+            print_help(argv[0]);
+            exit(1);
+         }
+         std::vector<std::string> pargs;
+         std::vector<std::string> nargs;
+         {
+         std::vector<std::string> args;
+         cxxtools::split(",", std::string(argv[optind]), std::back_inserter(args));
+         for(auto i : args) {
+            if(i.empty())
+               continue;
+            if(i[0] == '-') {
+               nargs.push_back(i.substr(1));
+            } else if(i[0] == '+') {
+               pargs.push_back(i.substr(1));
+            } else {
+               print_help(argv[0]);
+               exit(1);
+            }
+         }
+         }
+         std::string where = "";
+         char buff[128];
+
+         if(!pargs.empty()) {
+            where += " id IN (SELECT file_id FROM paths WHERE ";
+            for(unsigned int i = 0; i < pargs.size(); i++) {
+               if(i != 0) {
+                  where += " OR ";
+               }
+               where += " storage = ";
+               sprintf(buff, ":parg%u ", i);
+               where += buff;
+            }
+            where += " ) ";
+            if(!nargs.empty()) {
+               where += " AND ";
+            }
+         }
+
+         if(!nargs.empty()) {
+            where += " id NOT IN (SELECT file_id FROM paths WHERE ";
+            for(unsigned int i = 0; i < nargs.size(); i++) {
+               if(i != 0) {
+                  where += " OR ";
+               }
+               where += " storage = ";
+               sprintf(buff, ":narg%u ", i);
+               where += buff;
+            }
+            where += " ) ";
+         }
+
+         if(limit > 0)
+            where += " LIMIT :limit";
+
+         File::for_each(
+            [](File f) { display_file(f); },
+            where,
+            [&nargs, &pargs, &limit] (tntdb::Statement& st) {
+               char buff[128];
+
+               for(unsigned int i = 0; i < nargs.size(); i++) {
+                  sprintf(buff, "narg%u", i);
+                  st.set(buff, nargs[i]);
+               }
+
+               for(unsigned int i = 0; i < pargs.size(); i++) {
+                  sprintf(buff, "parg%u", i);
+                  st.set(buff, pargs[i]);
+               }
+
+               st.set("limit", limit);
+               });
+
+         optind++;
       }
       if(optind < argc && strcmp(argv[optind],"search")==0) {
          optind++;
