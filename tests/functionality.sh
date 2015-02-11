@@ -25,6 +25,8 @@ test_it() {
     echo "Running test $NAME:"
 }
 
+export TZ="/usr/share/zoneinfo/Europe/Prague"
+
 dump_db() {
 sqlite3 $DB <<EOF
 .mode csv 
