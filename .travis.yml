@@ -8,6 +8,7 @@ before_install:
   - sudo apt-get install libcxxtools-dev libtntdb-dev tntdb-sqlite4 libmagic-dev libav-tools -y
 script:
   - ./autogen.sh && ./configure --enable-gcov --enable-tests && make test && make all
+  - ./tests/functionality.sh
 after_success:
   - coveralls --exclude ext --exclude tests --exclude src/config.h --exclude src/\*.hpp -r . -b .
 env:
