@@ -62,17 +62,17 @@ void File::save() {
                              "movie_id = :movie_id "
                              " WHERE id = :id");
     smt
-        .set("size", size)
-        .set("mhash", mhash)
-        .set("osdbhash", osdbhash)
-        .set("added", added)
-        .set("audios", audios)
-        .set("subtitles", subtitles)
-        .set("width", width)
-        .set("height", height)
-        .set("length", length)
-        .set("movie_assigned_by", movie_assigned_by)
-        .set("movie_id", movie_id)
+        .setInt64("size", size)
+        .setUnsigned32("mhash", mhash)
+        .setUnsigned64("osdbhash", osdbhash)
+        .setUnsigned64("added", added)
+        .setString("audios", audios)
+        .setString("subtitles", subtitles)
+        .setUnsigned32("width", width)
+        .setUnsigned32("height", height)
+        .setUnsigned32("length", length)
+        .setUnsigned32("movie_assigned_by", movie_assigned_by)
+        .setUnsigned64("movie_id", movie_id)
         .set("id", db_id)
         .execute();
 }
@@ -221,14 +221,14 @@ uint32_t  File::get_length() const {
 }
 
 //! Setter for movie_assigned_by
-uint64_t& File::set_movie_assigned_by(const uint64_t val) {
+uint16_t& File::set_movie_assigned_by(const uint16_t val) {
     movie_assigned_by = val;
     dirty = true;
     return movie_assigned_by;
 }
 
 //! Getter for movie_assigned_by
-uint64_t  File::get_movie_assigned_by() const {
+uint16_t  File::get_movie_assigned_by() const {
     return movie_assigned_by;
 }
 
@@ -334,7 +334,7 @@ File File::deserialize(const cxxtools::SerializationInfo& si) {
     si.getMember("height") >>= in_height;
     uint32_t in_length;
     si.getMember("length") >>= in_length;
-    uint64_t in_movie_assigned_by;
+    uint16_t in_movie_assigned_by;
     si.getMember("movie_assigned_by") >>= in_movie_assigned_by;
     File f(
         in_size,
@@ -369,7 +369,7 @@ File::File(
             const uint32_t& in_width,
             const uint32_t& in_height,
             const uint32_t& in_length,
-            const uint64_t& in_movie_assigned_by) {
+            const uint16_t& in_movie_assigned_by) {
     db_init();
     db_id = 0;
     dirty = false;
@@ -426,16 +426,16 @@ File::File(
                              "length = :length AND "
                              "movie_assigned_by = :movie_assigned_by LIMIT 1)");
     smt
-        .set("size", size)
-        .set("mhash", mhash)
-        .set("osdbhash", osdbhash)
-        .set("added", added)
-        .set("audios", audios)
-        .set("subtitles", subtitles)
-        .set("width", width)
-        .set("height", height)
-        .set("length", length)
-        .set("movie_assigned_by", movie_assigned_by)
+        .setInt64("size", size)
+        .setUnsigned32("mhash", mhash)
+        .setUnsigned64("osdbhash", osdbhash)
+        .setUnsigned64("added", added)
+        .setString("audios", audios)
+        .setString("subtitles", subtitles)
+        .setUnsigned32("width", width)
+        .setUnsigned32("height", height)
+        .setUnsigned32("length", length)
+        .setUnsigned32("movie_assigned_by", movie_assigned_by)
         .execute();
 
     // Get ID from the database
@@ -454,16 +454,16 @@ File::File(
                              "length = :length AND "
                              "movie_assigned_by = :movie_assigned_by LIMIT 1");
     row = smt
-        .set("size", size)
-        .set("mhash", mhash)
-        .set("osdbhash", osdbhash)
-        .set("added", added)
-        .set("audios", audios)
-        .set("subtitles", subtitles)
-        .set("width", width)
-        .set("height", height)
-        .set("length", length)
-        .set("movie_assigned_by", movie_assigned_by)
+        .setInt64("size", size)
+        .setUnsigned32("mhash", mhash)
+        .setUnsigned64("osdbhash", osdbhash)
+        .setUnsigned64("added", added)
+        .setString("audios", audios)
+        .setString("subtitles", subtitles)
+        .setUnsigned32("width", width)
+        .setUnsigned32("height", height)
+        .setUnsigned32("length", length)
+        .setUnsigned32("movie_assigned_by", movie_assigned_by)
         .selectRow();
     db_id = 0;
     row[0].get(db_id);

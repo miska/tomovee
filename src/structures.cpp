@@ -42,30 +42,29 @@ File create_file(const char* storage, const char* file, bool use_mtime) {
    FILE* fl;
 
    // Set size
-   uint64_t size;
+   uint64_t size = 0;
    if((fl = fopen(file,"r")) == NULL)
       throw std::runtime_error("Can't open the file");
    fseek(fl, 0, SEEK_END);
    size = ftell(fl);
 
    // Calculate hashes
-   uint64_t osdbhash;
-   uint32_t mhash;
+   uint64_t osdbhash = 0;
+   uint32_t mhash = 0;
    compute_hash(osdbhash, mhash, fl);
    fclose(fl);
 
    // Get/create a file
    auto search_fl = File::search(
-      "osdbhash = :osdb AND mhash = :mhash and size = :size",
+      "osdbhash = :osdb AND mhash = :mhash AND size = :size",
       [&osdbhash, &mhash, &size](tntdb::Statement& st) {
-         st.set("osdb", osdbhash);
-         st.set("mhash", mhash);
-         st.set("size", size);
+         st.setUnsigned64("osdb", osdbhash);
+         st.setUnsigned32("mhash", mhash);
+         st.setUnsigned64("size", size);
       }
    );
-   if(search_fl.empty()) {
+   if(search_fl.empty())
       search_fl.push_back(File(size, mhash, osdbhash));
-   }
 
    // Get/create a path
    {
@@ -78,16 +77,16 @@ File create_file(const char* storage, const char* file, bool use_mtime) {
    );
    if(search_pt.empty()) {
       Path pt(storage, file);
-      pt.set_parent_file(search_fl[0]);
+      pt.set_parent_file(search_fl.front());
    } else {
-      touch_path(search_pt[0]);
-      search_pt[0].set_parent_file(search_fl[0]);
+      touch_path(search_pt.front());
+      search_pt.front().set_parent_file(search_fl.front());
    }
    }
 
    // Update info
-   update_file_info(search_fl[0], file, use_mtime);
-   return search_fl[0];
+   update_file_info(search_fl.front(), file, use_mtime);
+   return search_fl.front();
 }
 
 //! Update hash and filesize

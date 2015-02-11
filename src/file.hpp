@@ -64,7 +64,7 @@ private:
     //! Movie length in seconds
     uint32_t length;
     //! How did we get the link to the movie
-    uint64_t movie_assigned_by;
+    uint16_t movie_assigned_by;
     //! Movie this file contains
     uint64_t movie_id;
     //! Private constructor directly from database
@@ -79,7 +79,7 @@ private:
             , const uint32_t in_width
             , const uint32_t in_height
             , const uint32_t in_length
-            , const uint64_t in_movie_assigned_by
+            , const uint16_t in_movie_assigned_by
             , const uint64_t in_movie_id
             ) :
               db_id(in_db_id)
@@ -152,9 +152,9 @@ public:
     //! Getter for length
     virtual uint32_t  get_length() const;
     //! Setter for movie_assigned_by
-    virtual uint64_t& set_movie_assigned_by(const uint64_t);
+    virtual uint16_t& set_movie_assigned_by(const uint16_t);
     //! Getter for movie_assigned_by
-    virtual uint64_t  get_movie_assigned_by() const;
+    virtual uint16_t  get_movie_assigned_by() const;
     //! Get all paths belonging to this file
     virtual std::vector<Path> get_paths() const;
     //! Add new path to this file
@@ -178,7 +178,7 @@ public:
             const uint32_t& in_width = 0,
             const uint32_t& in_height = 0,
             const uint32_t& in_length = 0,
-            const uint64_t& in_movie_assigned_by = 0
+            const uint16_t& in_movie_assigned_by = 0
         );
     //! Copy constructor
     File(const File& other) :

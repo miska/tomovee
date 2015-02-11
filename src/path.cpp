@@ -47,10 +47,10 @@ void Path::save() {
                              "file_id = :file_id "
                              " WHERE id = :id");
     smt
-        .set("storage", storage)
-        .set("path", path)
-        .set("checked", checked)
-        .set("file_id", file_id)
+        .setString("storage", storage)
+        .setString("path", path)
+        .setUnsigned64("checked", checked)
+        .setUnsigned64("file_id", file_id)
         .set("id", db_id)
         .execute();
 }
@@ -206,9 +206,9 @@ Path::Path(
                              "path = :path AND "
                              "checked = :checked LIMIT 1)");
     smt
-        .set("storage", storage)
-        .set("path", path)
-        .set("checked", checked)
+        .setString("storage", storage)
+        .setString("path", path)
+        .setUnsigned64("checked", checked)
         .execute();
 
     // Get ID from the database
@@ -220,9 +220,9 @@ Path::Path(
                              "path = :path AND "
                              "checked = :checked LIMIT 1");
     row = smt
-        .set("storage", storage)
-        .set("path", path)
-        .set("checked", checked)
+        .setString("storage", storage)
+        .setString("path", path)
+        .setUnsigned64("checked", checked)
         .selectRow();
     db_id = 0;
     row[0].get(db_id);

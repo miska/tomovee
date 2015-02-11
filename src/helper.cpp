@@ -30,9 +30,9 @@ std::string db_url;
 
 //! Function to compute Open Subtitles DB hash
 void compute_hash(uint64_t& osdb_hash, uint32_t& m_hash, FILE * handle) {
-        uint64_t fsize;
-        uint64_t tmp;
-        size_t i;
+        uint64_t fsize = 0;
+        uint64_t tmp = 0;
+        size_t i = 0;
 
         if(fseek(handle, 0, SEEK_END) < 0)
             return;
@@ -52,6 +52,7 @@ void compute_hash(uint64_t& osdb_hash, uint32_t& m_hash, FILE * handle) {
                         ((fsize/((uint64_t)2)) > (uint64_t)32768)?
                          (fsize/((uint64_t)2) - 32768) : 0), SEEK_SET) < 0)
             return;
+
         for(uint32_t tmp = 0, i = 0; i < (size_t)65536/sizeof(tmp) &&
             fread((char*)&tmp, sizeof(tmp), 1, handle);
             m_hash += tmp, i++);
@@ -59,6 +60,7 @@ void compute_hash(uint64_t& osdb_hash, uint32_t& m_hash, FILE * handle) {
         if(fseek(handle, (uint64_t)((fsize > (uint64_t)65536) ?
                                   fsize - 65536 : 0), SEEK_SET) < 0)
             return;
+
         for(uint64_t tmp = 0, i = 0; i < 65536/sizeof(tmp) &&
             fread((char*)&tmp, sizeof(tmp), 1, handle);
             osdb_hash += tmp, i++);

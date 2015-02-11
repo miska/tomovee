@@ -45,9 +45,9 @@ void Movie::save() {
                              "name = :name "
                              " WHERE id = :id");
     smt
-        .set("imdb_id", imdb_id)
-        .set("en_name", en_name)
-        .set("name", name)
+        .setString("imdb_id", imdb_id)
+        .setString("en_name", en_name)
+        .setString("name", name)
         .set("id", db_id)
         .execute();
 }
@@ -209,9 +209,9 @@ Movie::Movie(
                              "en_name = :en_name AND "
                              "name = :name LIMIT 1)");
     smt
-        .set("imdb_id", imdb_id)
-        .set("en_name", en_name)
-        .set("name", name)
+        .setString("imdb_id", imdb_id)
+        .setString("en_name", en_name)
+        .setString("name", name)
         .execute();
 
     // Get ID from the database
@@ -222,9 +222,9 @@ Movie::Movie(
                              "en_name = :en_name AND "
                              "name = :name LIMIT 1");
     row = smt
-        .set("imdb_id", imdb_id)
-        .set("en_name", en_name)
-        .set("name", name)
+        .setString("imdb_id", imdb_id)
+        .setString("en_name", en_name)
+        .setString("name", name)
         .selectRow();
     db_id = 0;
     row[0].get(db_id);
