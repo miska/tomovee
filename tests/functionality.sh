@@ -22,7 +22,6 @@ test_it() {
     if [ "$1" ]; then
         NAME="$1"
     fi
-    [ "$NAME" ] || NAME="`basename "$0" .sh`"
     echo "Running test $NAME:"
 }
 
@@ -30,8 +29,8 @@ dump_db() {
 sqlite3 $DB <<EOF
 .mode csv 
 .header on 
-select size,mhash,osdbhash,added,audios,subtitles,width,height,length,movie_assigned_by,movie_id from files;
-select storage,path,file_id from paths;
+select size,mhash,osdbhash,added,audios,subtitles,width,height,length,movie_assigned_by,movie_id from files order by osdbhash;
+select storage,path,file_id from paths order by storage,path;
 EOF
 }
 
@@ -83,9 +82,10 @@ for i in $POSITIVE; do
         fi
     done
     [ -z "$SKIP" ] || continue
-    NAME="`echo "$SCRIPT" | sed 's|\.sh$||'`"
+    NAME="`echo "$SCRIPT" | sed 's|^[0-9]*_\(.*\)\.sh$|\1|'`"
     EXPECT="../results/$NAME".res
     RESULT="$LOG_DIR/$NAME".log
+    test_it
     . ./"$SCRIPT" > "$RESULT"
     [ -r "$EXPECT" ] || touch "$EXPECT"
     if [ -r "$RESULT" ]; then
