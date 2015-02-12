@@ -5,7 +5,6 @@ File:
   length:     0:01:57
   paths:
     test1://a.avi
-    test1://inside/b.avi
     test1://inside/whatever.avi
     test2://c.avi
 tomovee_cli -s test1 search ever
@@ -15,7 +14,6 @@ File:
   length:     0:01:57
   paths:
     test1://a.avi
-    test1://inside/b.avi
     test1://inside/whatever.avi
     test2://c.avi
 tomovee_cli -s test2 search ever
