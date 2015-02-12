@@ -52,7 +52,7 @@ rm -f "$DB"
 mkdir -p "$RUN_DIR"/test1/inside
 mkdir -p "$RUN_DIR"/test2
 cp fixtures/movies/breakdance.avi "$RUN_DIR"/test1/a.avi
-cp fixtures/movies/breakdance.avi "$RUN_DIR"/test1/inside/b.avi
+cp fixtures/movies/breakdance.avi "$RUN_DIR"/test1/inside/whatever.avi
 cp fixtures/movies/breakdance.avi "$RUN_DIR"/test2/c.avi
 cp fixtures/movies/breakdance.avi "$RUN_DIR"/test2/d.avi
 echo 'a' >> "$RUN_DIR"/test2/d.avi
