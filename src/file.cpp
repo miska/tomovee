@@ -72,17 +72,17 @@ void File::save() {
         .setUnsigned32("height", height)
         .setUnsigned32("length", length)
         .setUnsigned32("movie_assigned_by", movie_assigned_by)
-        .setUnsigned64("movie_id", movie_id)
+        .setInt("movie_id", movie_id)
         .set("id", db_id)
         .execute();
 }
 
 //! Get all paths belonging to this file
 std::vector<Path> File::get_paths() const {
-    auto id = db_id;
+    int id = db_id;
     Path::db_init();
     auto ret = Path::search("file_id = :file_id",
-        [id](tntdb::Statement& st) { st.set("file_id", id); } );
+        [id](tntdb::Statement& st) { st.setInt("file_id", id); } );
     return ret;
 }
 
@@ -92,13 +92,13 @@ void File::add_path(Path& path) {
 }
 
 //! Set File::id of parent movie
-void File::set_parent_movie_id(uint64_t id) {
+void File::set_parent_movie_id(int id) {
     movie_id = id;
     dirty = true;
 }
 
 //! Get id of parent movie
-uint64_t File::get_parent_movie_id() const {
+int File::get_parent_movie_id() const {
     return movie_id;
 }
 
@@ -516,7 +516,7 @@ void File::for_each(std::function<void(File)> what,
             , row.getUnsigned32("height")
             , row.getUnsigned32("length")
             , row.getUnsigned32("movie_assigned_by")
-            , row.getUnsigned64("movie_id")
+            , row.getInt("movie_id")
         );
         what(it);
     }
@@ -525,46 +525,11 @@ void File::for_each(std::function<void(File)> what,
 //! Returns element specified by it's database id
 File File::get_by_id(uint64_t id) {
 
-    tntdb::Connection conn = tntdb::connectCached(db_url);
-    tntdb::Statement smt;
-
-    db_init();
-
-    // Query data
-    std::string query = "SELECT id "
-                             ", size "
-                             ", mhash "
-                             ", osdbhash "
-                             ", added "
-                             ", audios "
-                             ", subtitles "
-                             ", width "
-                             ", height "
-                             ", length "
-                             ", movie_assigned_by "
-                             ", movie_id "
-                             " FROM files "
-                             " WHERE id = :id ";
-    smt = conn.prepareCached(query);
-    smt.set("id", id);
-
-    // Construct response
-    auto row = smt.selectRow();
-    File ret(
-              row.getUnsigned64("id")
-            , row.getInt64("size")
-            , row.getUnsigned32("mhash")
-            , row.getUnsigned64("osdbhash")
-            , row.getUnsigned64("added")
-            , row.isNull("audios") ? "" : row.getString("audios")
-            , row.isNull("subtitles") ? "" : row.getString("subtitles")
-            , row.getUnsigned32("width")
-            , row.getUnsigned32("height")
-            , row.getUnsigned32("length")
-            , row.getUnsigned32("movie_assigned_by")
-            , row.getUnsigned64("movie_id")
-        );
-    return ret;
+    std::vector<File> ret = File::search(
+        "id = :id",
+        [&id](tntdb::Statement& st) { st.setInt("id", id); }
+	);
+    return ret.front();
 }
 
 //! Deletes specified elements

@@ -39,7 +39,7 @@ class File;
 class Path {
 private:
     //! Database id
-    uint64_t db_id;
+    int db_id;
     //! Indicates changes not yet saved in database
     bool dirty;
     //! Indicates whether existence of the table was already checked
@@ -51,14 +51,14 @@ private:
     //! When was the last time we saw this file here
     uint64_t checked;
     //! File this path belongs to
-    uint64_t file_id;
+    int file_id;
     //! Private constructor directly from database
     Path(
-              const uint64_t in_db_id
+              const int in_db_id
             , const std::string in_storage
             , const std::string in_path
             , const uint64_t in_checked
-            , const uint64_t in_file_id
+            , const int in_file_id
             ) :
               db_id(in_db_id)
             , dirty(false)
@@ -85,7 +85,7 @@ public:
     //! Save object into database
     virtual void save();
     //! Returns unique database id
-    virtual uint64_t get_db_id() const { return db_id; }
+    virtual int get_db_id() const { return db_id; }
     //! Setter for storage
     virtual std::string& set_storage(const std::string);
     //! Getter for storage
@@ -99,9 +99,9 @@ public:
     //! Getter for checked
     virtual uint64_t  get_checked() const;
     //! Set id of parent file
-    virtual void set_parent_file_id(uint64_t id);
+    virtual void set_parent_file_id(int id);
     //! Get id of parent file
-    virtual uint64_t get_parent_file_id() const;
+    virtual int get_parent_file_id() const;
     //! Set parent file
     virtual void set_parent_file(const File parent);
     //! Get parent file

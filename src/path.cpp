@@ -50,19 +50,19 @@ void Path::save() {
         .setString("storage", storage)
         .setString("path", path)
         .setUnsigned64("checked", checked)
-        .setUnsigned64("file_id", file_id)
+        .setInt("file_id", file_id)
         .set("id", db_id)
         .execute();
 }
 
 //! Set Path::id of parent file
-void Path::set_parent_file_id(uint64_t id) {
+void Path::set_parent_file_id(int id) {
     file_id = id;
     dirty = true;
 }
 
 //! Get id of parent file
-uint64_t Path::get_parent_file_id() const {
+int Path::get_parent_file_id() const {
     return file_id;
 }
 
@@ -261,7 +261,7 @@ void Path::for_each(std::function<void(Path)> what,
             , row.getString("storage")
             , row.getString("path")
             , row.getUnsigned64("checked")
-            , row.getUnsigned64("file_id")
+            , row.getInt("file_id")
         );
         what(it);
     }
@@ -270,32 +270,11 @@ void Path::for_each(std::function<void(Path)> what,
 //! Returns element specified by it's database id
 Path Path::get_by_id(uint64_t id) {
 
-    tntdb::Connection conn = tntdb::connectCached(db_url);
-    tntdb::Statement smt;
-
-    db_init();
-
-    // Query data
-    std::string query = "SELECT id "
-                             ", storage "
-                             ", path "
-                             ", checked "
-                             ", file_id "
-                             " FROM paths "
-                             " WHERE id = :id ";
-    smt = conn.prepareCached(query);
-    smt.set("id", id);
-
-    // Construct response
-    auto row = smt.selectRow();
-    Path ret(
-              row.getUnsigned64("id")
-            , row.isNull("storage") ? "" : row.getString("storage")
-            , row.isNull("path") ? "" : row.getString("path")
-            , row.getUnsigned64("checked")
-            , row.getUnsigned64("file_id")
-        );
-    return ret;
+    std::vector<Path> ret = Path::search(
+        "id = :id",
+        [&id](tntdb::Statement& st) { st.setInt("id", id); }
+	);
+    return ret.front();
 }
 
 //! Deletes specified elements

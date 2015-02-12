@@ -262,7 +262,7 @@ int main(int argc, char **argv) {
             [](Path p) { display_file(p.get_parent_file()); },
             where,
             [&argv, &storage, &limit, &optind] (tntdb::Statement& st) {
-                st.set("name", std::string(argv[optind])).
+                st.set("name", "%" + std::string(argv[optind]) + "%").
                    set("st", storage).
                    set("limit", limit); });
          optind++;

@@ -40,7 +40,7 @@ class Movie;
 class File {
 private:
     //! Database id
-    uint64_t db_id;
+    int db_id;
     //! Indicates changes not yet saved in database
     bool dirty;
     //! Indicates whether existence of the table was already checked
@@ -66,10 +66,10 @@ private:
     //! How did we get the link to the movie
     uint16_t movie_assigned_by;
     //! Movie this file contains
-    uint64_t movie_id;
+    int movie_id;
     //! Private constructor directly from database
     File(
-              const uint64_t in_db_id
+              const int in_db_id
             , const int64_t in_size
             , const uint32_t in_mhash
             , const uint64_t in_osdbhash
@@ -80,7 +80,7 @@ private:
             , const uint32_t in_height
             , const uint32_t in_length
             , const uint16_t in_movie_assigned_by
-            , const uint64_t in_movie_id
+            , const int in_movie_id
             ) :
               db_id(in_db_id)
             , dirty(false)
@@ -114,7 +114,7 @@ public:
     //! Save object into database
     virtual void save();
     //! Returns unique database id
-    virtual uint64_t get_db_id() const { return db_id; }
+    virtual int get_db_id() const { return db_id; }
     //! Setter for size
     virtual int64_t& set_size(const int64_t);
     //! Getter for size
@@ -160,9 +160,9 @@ public:
     //! Add new path to this file
     virtual void add_path(Path& path);
     //! Set id of parent movie
-    virtual void set_parent_movie_id(uint64_t id);
+    virtual void set_parent_movie_id(int id);
     //! Get id of parent movie
-    virtual uint64_t get_parent_movie_id() const;
+    virtual int get_parent_movie_id() const;
     //! Set parent movie
     virtual void set_parent_movie(const Movie parent);
     //! Get parent movie

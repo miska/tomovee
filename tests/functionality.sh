@@ -25,6 +25,11 @@ test_it() {
     echo "Running test $NAME:"
 }
 
+run_it() {
+    echo "$@"
+    "$@"
+}
+
 export TZ="/usr/share/zoneinfo/Europe/Prague"
 
 dump_db() {

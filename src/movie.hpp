@@ -39,7 +39,7 @@ class File;
 class Movie {
 private:
     //! Database id
-    uint64_t db_id;
+    int db_id;
     //! Indicates changes not yet saved in database
     bool dirty;
     //! Indicates whether existence of the table was already checked
@@ -52,7 +52,7 @@ private:
     std::string name;
     //! Private constructor directly from database
     Movie(
-              const uint64_t in_db_id
+              const int in_db_id
             , const std::string in_imdb_id
             , const std::string in_en_name
             , const std::string in_name
@@ -81,7 +81,7 @@ public:
     //! Save object into database
     virtual void save();
     //! Returns unique database id
-    virtual uint64_t get_db_id() const { return db_id; }
+    virtual int get_db_id() const { return db_id; }
     //! Setter for imdb_id
     virtual std::string& set_imdb_id(const std::string);
     //! Getter for imdb_id

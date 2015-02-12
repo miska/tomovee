@@ -54,10 +54,10 @@ void Movie::save() {
 
 //! Get all files belonging to this movie
 std::vector<File> Movie::get_files() const {
-    auto id = db_id;
+    int id = db_id;
     File::db_init();
     auto ret = File::search("movie_id = :movie_id",
-        [id](tntdb::Statement& st) { st.set("movie_id", id); } );
+        [id](tntdb::Statement& st) { st.setInt("movie_id", id); } );
     return ret;
 }
 
@@ -268,30 +268,11 @@ void Movie::for_each(std::function<void(Movie)> what,
 //! Returns element specified by it's database id
 Movie Movie::get_by_id(uint64_t id) {
 
-    tntdb::Connection conn = tntdb::connectCached(db_url);
-    tntdb::Statement smt;
-
-    db_init();
-
-    // Query data
-    std::string query = "SELECT id "
-                             ", imdb_id "
-                             ", en_name "
-                             ", name "
-                             " FROM movies "
-                             " WHERE id = :id ";
-    smt = conn.prepareCached(query);
-    smt.set("id", id);
-
-    // Construct response
-    auto row = smt.selectRow();
-    Movie ret(
-              row.getUnsigned64("id")
-            , row.isNull("imdb_id") ? "" : row.getString("imdb_id")
-            , row.isNull("en_name") ? "" : row.getString("en_name")
-            , row.isNull("name") ? "" : row.getString("name")
-        );
-    return ret;
+    std::vector<Movie> ret = Movie::search(
+        "id = :id",
+        [&id](tntdb::Statement& st) { st.setInt("id", id); }
+	);
+    return ret.front();
 }
 
 //! Deletes specified elements
