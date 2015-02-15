@@ -1,1 +1,1 @@
-miner.res
+db_ready.res

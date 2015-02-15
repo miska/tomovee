@@ -88,6 +88,7 @@ for i in $POSITIVE; do
             SKIP="true"
         fi
     done
+    expr match $SCRIPT .\*\\.sh > /dev/null || SKIP=true
     [ -z "$SKIP" ] || continue
     NAME="`echo "$SCRIPT" | sed 's|^[0-9]*_\(.*\)\.sh$|\1|'`"
     EXPECT="../results/$NAME".res
