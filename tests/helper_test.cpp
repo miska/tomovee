@@ -63,16 +63,6 @@ TEST_CASE( "Video detection works", "[helper][is_video]" ) {
    }
 }
 
-// Tests for video detection
-TEST_CASE( "IMDB link extraction from NFO file", "[helper][imdb_from_nfo]" ) {
-   SECTION("NFO in same directory") {
-      CHECK(imdb_from_nfo(fixtures "/almost_movies/solaris.avi") == "tt0069293");
-   }
-   SECTION("NFO in upper directory") {
-      CHECK(imdb_from_nfo(fixtures "/almost_movies/inside/solaris.avi") == "tt0069293");
-   }
-}
-
 // Test video metadata extraction
 TEST_CASE( "Video data extraction", "[helper][matadata]" ) {
    SECTION("Simple extraction") {

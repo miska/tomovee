@@ -22,6 +22,7 @@
 #include <tntdb/row.h>
 
 #include "helper.hpp"
+#include "structures.hpp"
 #include "path.hpp"
 #include "movie.hpp"
 #include "file.hpp"
@@ -162,42 +163,102 @@ bool is_interesting(string name) {
    return false;
 }
 
-// TODO: optimise
-std::string imdb_from_nfo(const char* cfile) {
-   std::string ret;
-   char *file = strdup(cfile);
+void meta_from_nfo(const char* cfile, File& f) {
    const char *patt = "://www.imdb.com/title/";
    size_t patt_len = strlen(patt);
-   char* dir = file;
+   char* dir2 = strdup(cfile);
+   char* dir2_d = strdup(dir2);
+   char* dir1 = strdup(dirname(dir2_d));
+   char* dir1_d = strdup(dir1);
 
-   while((strcmp(dir = dirname(dir), ".") != 0) && ret.empty()) {
-      find(dir,
+   // Descend lower and lower till we find what we need or run out of options
+   while(strcmp(dir1, dir2) != 0) {
+      find(dir1,
          [&](const char* name) {
+            bool force = name[strlen(name)-1] == 'e';
+            if((f.get_movie_assigned_by() != NOT_ASSIGNED &&
+               !f.get_subtitles().empty() &&
+               !f.get_audios().empty()) && !force)
+                return;
+
+            // Read whole file into memory
             std::string str;
             std::ifstream file(name,std::ios::in);
-            if (file) {
-               while (!file.eof()) str.push_back(file.get());
+            if(file) {
+               while(!file.eof()) str.push_back(tolower(file.get()));
             }
-            auto f = str.find(patt);
-            if(f != std::string::npos) {
-               for(auto i = f + patt_len; i < str.size() && 
-                                            ( str[i] == 't' || isdigit(str[i]));
-                   ret.push_back(str[i]), i++);
+
+            // Try to get IMDB id
+            size_t s = str.find(patt);
+            std::string imdb;
+            if(s != std::string::npos) {
+               for(size_t i = s + patt_len; i < str.size() &&
+                                        ( str[i] == 't' || isdigit(str[i]));
+                   imdb.push_back(str[i]), i++);
             }
+
+            if(!imdb.empty() && (f.get_movie_assigned_by() == NOT_ASSIGNED ||
+                                 force)) {
+               std::vector<Movie> m = Movie::search("imdb_id = :imdb",
+                  [&imdb](tntdb::Statement& st) { st.setString("imdb", imdb); }
+               );
+               if(m.empty()) {
+                  m.push_back(Movie(imdb));
+               }
+               f.set_movie_assigned_by(AUTO_NFO);
+               m.front().add_file(f);
+            }
+
+            // Try to find language information
+            s = str.find("audio");
+            // Try to find subtitle information
+            s = str.find("subtitle");
          },
+         // We want only nfo files
          [](const char *name) -> bool { 
             int len = strlen(name);
-            return ( (len > 4) &&
-                     (tolower(name[len - 4]) == '.') &&
-                     (tolower(name[len - 3]) == 'n') &&
-                     (tolower(name[len - 2]) == 'f') &&
-                     (tolower(name[len - 1]) == 'o') );
+            std::string nme;
+            std::string pat1 = ".nfo";
+            std::string pat2 = ".nfo.force";
+
+            for(auto i = 0; i<len; i++)
+               nme.push_back(tolower(name[i]));
+
+            std::string::reverse_iterator p1 = pat1.rbegin();
+            std::string::reverse_iterator p2 = pat2.rbegin();
+            for(auto it = nme.rbegin(); it != nme.rend(); it++) {
+               if((*p1 != *it) && (*p2 != *it))
+                  return false;
+
+               if(*it != *p1)
+                  p1 = p2;
+               else
+                  p1++;
+
+               if(*it != *p2)
+                  p2 = p1;
+               else
+                  p2++;
+
+               if((p1 == pat1.rend()) || (p2 == pat2.rend()))
+                  return true;
+            }
+            return false;
          },
-         [&](const char *name) -> bool { return strcmp(name, dir) == 0; }
+         // Descend just to current directory
+         [&](const char *name) -> bool { return strcmp(name, dir1) == 0; }
       );
+      free(dir2);
+      free(dir2_d);
+      dir2 = dir1;
+      dir2_d = dir1_d;
+      dir1 = strdup(dirname(dir2_d));
+      dir1_d = strdup(dir1);
    }
-   free(file);
-   return ret;
+   free(dir2);
+   free(dir2_d);
+   free(dir1);
+   free(dir1_d);
 }
 
 void get_movie_info(const char* file, int32_t& length, int32_t& width, int32_t& height,

@@ -38,6 +38,7 @@ sqlite3 $DB <<EOF
 .header on 
 select size,mhash,osdbhash,added,audios,subtitles,width,height,length,movie_assigned_by,movie_id from files order by osdbhash;
 select storage,path,file_id from paths order by storage,path;
+select imdb_id from movies order by imdb_id;
 EOF
 }
 
@@ -54,17 +55,36 @@ export DB="$LOG_DIR"/tomovee.sqlite
 rm -f "$DB"
 
 # Setup testing structure
-mkdir -p "$RUN_DIR"/test1/inside
-mkdir -p "$RUN_DIR"/test2
-cp fixtures/movies/breakdance.avi "$RUN_DIR"/test1/a.avi
-cp fixtures/movies/breakdance.avi "$RUN_DIR"/test1/inside/whatever.avi
-cp fixtures/movies/breakdance.avi "$RUN_DIR"/test2/c.avi
-cp fixtures/movies/breakdance.avi "$RUN_DIR"/test2/d.avi
-echo 'a' >> "$RUN_DIR"/test2/d.avi
-find "$RUN_DIR"/test* -exec touch -d "2014-09-26 11:00:00 CEST" \{\} \;
+export test1="$RUN_DIR"/files/test1
+export test2="$RUN_DIR"/files/test2
+mkdir -p "$test1"/inside
+mkdir -p "$test2"
+cp fixtures/movies/breakdance.avi "$test1"/a.avi
+cp fixtures/movies/breakdance.avi "$test1"/inside/whatever.avi
+cp fixtures/movies/breakdance.avi "$test2"/c.avi
+cp fixtures/movies/breakdance.avi "$test2"/d.avi
+echo 'a' >> "$test2"/d.avi
 
-export test1="$RUN_DIR"/test1
-export test2="$RUN_DIR"/test2
+export test3="$RUN_DIR"/nfo/test3
+export test3_inside="$test3"/first/overwrite/file
+mkdir -p "$test3_inside"
+cp fixtures/movies/breakdance.avi "$test3_inside"/whatever.avi
+cat > "$test3_inside"/whatever.NFO << EOF
+URL: http://www.imdb.com/title/tt0086999
+__Audio___: _Abkhazian_
+sUbTitles.... : -= Zaza & Zulu =-
+EOF
+cat > "$test3"/first/overwrite/whatever.nFo.force << EOF
+URL: http://www.imdb.com/title/tt0086998
+__Audio___: _English_
+sUbTitles.... : -= Empty =-
+EOF
+cat > "$test3"/first/whatever.nfo << EOF
+URL: http://www.imdb.com/title/tt0086997
+__Audio___: _Abkhazian_
+sUbTitles.... : -= Zaza & Zulu =-
+EOF
+find "$RUN_DIR"/{files,nfo} -exec touch -d "2014-09-26 11:00:00 CEST" \{\} \;
 
 cd functionality/commands
 

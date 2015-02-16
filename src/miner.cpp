@@ -160,15 +160,7 @@ int main(int argc, char **argv) {
               }
 
            }
-           std::string i = imdb_from_nfo(name);
-           if(verbose && !i.empty()) {
-              printf("Got IMDB ID '%s' from NFO file.\n", i.c_str());
-              auto m = Movie(i);
-              m.save();
-              f.set_movie_assigned_by(AUTO_NFO);
-              f.set_parent_movie(m);
-              f.save();
-           }
+           meta_from_nfo(name, f);
         },
         [](const char* name) -> bool { return is_video(name); },
         verbose?

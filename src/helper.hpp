@@ -8,6 +8,7 @@
 #include <string>
 #include <functional>
 #include <limits.h>
+#include <file.hpp>
 
 extern std::string db_url;
 
@@ -40,7 +41,7 @@ bool is_video(const char *file);
 //! Makes sure database tables are created
 void init_db();
 
-std::string imdb_from_nfo(const char* file);
+void meta_from_nfo(const char* file, File& f);
 
 void get_movie_info(const char* file, int32_t& length, int32_t& width, int32_t& height,
                     std::string& audio, std::string& srt);
