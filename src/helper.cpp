@@ -26,6 +26,7 @@
 #include "path.hpp"
 #include "movie.hpp"
 #include "file.hpp"
+#include "lang_codes.h"
 
 std::string db_url;
 
@@ -211,8 +212,30 @@ void meta_from_nfo(const char* cfile, File& f) {
 
             // Try to find language information
             s = str.find("audio");
+            std::string ret;
+            c_str p;
+            if(s != std::string::npos) {
+               p = (c_str)(str.c_str() + s);
+               while(lang2code(p,ret));
+            }
+            if(!ret.empty() && (f.get_audios().empty() || force)) {
+               if(ret.find("empty") != std::string::npos)
+                  ret = "-";
+               f.set_audios(ret);
+            }
+
             // Try to find subtitle information
             s = str.find("subtitle");
+            ret = "";
+            if(s != std::string::npos) {
+               p = (c_str)(str.c_str() + s);
+               while(lang2code(p,ret));
+            }
+            if(!ret.empty() && (f.get_subtitles().empty() || force)) {
+               if(ret.find("empty") != std::string::npos)
+                  ret = "-";
+               f.set_subtitles(ret);
+            }
          },
          // We want only nfo files
          [](const char *name) -> bool { 
