@@ -114,11 +114,16 @@ for i in $POSITIVE; do
     EXPECT="../results/$NAME".res
     RESULT="$LOG_DIR/$NAME".log
     test_it
-    . ./"$SCRIPT" > "$RESULT"
+    . ./"$SCRIPT" | tee "$RESULT" | sort > "$RESULT".sort
     [ -r "$EXPECT" ] || touch "$EXPECT"
     if [ -r "$RESULT" ]; then
         diff -Naruw "$EXPECT" "$RESULT"
-        print_result $?
+        RET=$?
+        if [ $RET -gt 0 ]; then
+            cat "$EXPECT" | sort | diff -Naruw - "$RESULT".sort > /dev/null
+            RET=$?
+        fi
+        print_result $RET
     fi
     done
 done
