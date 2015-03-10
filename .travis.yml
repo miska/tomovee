@@ -2,14 +2,16 @@ language: cpp
 compiler:
   - gcc
 before_install:
-  - sudo pip install cpp-coveralls
   - sudo add-apt-repository ppa:yavdr/main -y
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
   - sudo apt-get update -y
   - sudo apt-get install libcxxtools-dev libtntdb-dev tntdb-sqlite4 libmagic-dev libav-tools gcc-4.8 g++-4.8 -y
+  - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90;
+  - sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 90;
+  - sudo pip install cpp-coveralls
 script:
   - ./autogen.sh
-  - CC="`basename /usr/bin/gcc-4.8*`" CXX="`basename /usr/bin/g++-4.8*`" ./configure --enable-gcov --enable-tests
+  - ./configure --enable-gcov --enable-tests
   - make test && make all
   - ./tests/functionality.sh
 after_success:
