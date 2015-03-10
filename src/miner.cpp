@@ -118,6 +118,8 @@ int main(int argc, char **argv) {
    if(storage.empty()) {
       gethostname(buff, 127);
       storage = buff;
+      storage += ":";
+      storage += basename(argv[argc-1]);
    }
 
    // Where to store data?
