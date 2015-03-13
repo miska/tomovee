@@ -178,8 +178,12 @@ int main(int argc, char **argv) {
            [](const char* name) -> bool { return should_scan(name); }
        );
    if(del) {
-/*      Path::remove("checked < :ts AND storage = :st", del_ts, storage);
-      if(del_all)
-         File::cleanup(); */
+      Path::remove("checked < :ts AND storage = :st",
+          [&storage, &del_ts](tntdb::Statement& st) {
+              st.set("ts", del_ts).set("st", storage);
+          });
+      if(del_all) {
+         File::remove("id NOT IN (SELECT file_id FROM paths)");
+      }
    }
 }
