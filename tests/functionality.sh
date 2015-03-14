@@ -55,20 +55,21 @@ export DB="$LOG_DIR"/tomovee.sqlite
 rm -f "$DB"
 
 # Setup testing structure
+export movie="`pwd`/fixtures/movies/breakdance.avi"
 export test1="$RUN_DIR"/files/test1
 export test2="$RUN_DIR"/files/test2
 mkdir -p "$test1"/inside
 mkdir -p "$test2"
-cp fixtures/movies/breakdance.avi "$test1"/a.avi
-cp fixtures/movies/breakdance.avi "$test1"/inside/whatever.avi
-cp fixtures/movies/breakdance.avi "$test2"/c.avi
-cp fixtures/movies/breakdance.avi "$test2"/d.avi
+cp "$movie" "$test1"/a.avi
+cp "$movie" "$test1"/inside/whatever.avi
+cp "$movie" "$test2"/c.avi
+cp "$movie" "$test2"/d.avi
 echo 'a' >> "$test2"/d.avi
 
 export test3="$RUN_DIR"/nfo/test3
 export test3_inside="$test3"/first/overwrite/file
 mkdir -p "$test3_inside"
-cp fixtures/movies/breakdance.avi "$test3_inside"/whatever.avi
+cp "$movie" "$test3_inside"/whatever.avi
 cat > "$test3_inside"/whatever.NFO << EOF
 URL: http://www.imdb.com/title/tt0086999
 __Audio___: _Abkhazian_
