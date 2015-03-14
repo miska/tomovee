@@ -178,11 +178,15 @@ int main(int argc, char **argv) {
            [](const char* name) -> bool { return should_scan(name); }
        );
    if(del) {
+      if(verbose)
+          printf("Removing paths no longer present...\n");
       Path::remove("checked < :ts AND storage = :st",
           [&storage, &del_ts](tntdb::Statement& st) {
               st.set("ts", del_ts).set("st", storage);
           });
       if(del_all) {
+         if(verbose)
+             printf("Removing files without paths...\n");
          File::remove("id NOT IN (SELECT file_id FROM paths)");
       }
    }
