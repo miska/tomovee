@@ -1,5 +1,5 @@
 Usage info:
-  tomovee_cli [options] <command> [arguments]
+tomovee_cli [options] <command> [arguments]
 
 Options:
    -c <count>        Show <count> files at maximum

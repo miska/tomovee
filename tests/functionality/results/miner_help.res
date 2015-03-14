@@ -1,5 +1,5 @@
 Usage info:
-  tomovee_miner [option] <path>
+tomovee_miner [option] <path>
 
 Options:
  -s, --storage <st>  This storage is called <st>.

@@ -37,7 +37,7 @@ sqlite3 $DB <<EOF
 .mode csv 
 .header on 
 select size,mhash,osdbhash,added,audios,subtitles,width,height,length,movie_assigned_by,movie_id from files order by osdbhash;
-select storage,path,file_id from paths order by storage,path;
+select storage,path from paths order by storage,path;
 select imdb_id from movies order by imdb_id;
 EOF
 }
